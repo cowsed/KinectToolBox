@@ -3,49 +3,119 @@
 
 #include <GL/glu.h>
 #include <GL/gl.h>
-
+#include <iostream>
 PointCloudRenderer::PointCloudRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
+    , QBasicTimer()
     , ui(new Ui::PointCloudRenderer)
 {
   ui->setupUi(this);
+  QBasicTimer::start(16, Qt::TimerType::PreciseTimer, this);
 }
 
+
+void PointCloudRenderer::timerEvent(QTimerEvent *event){
+  paintGL();
+}
 void PointCloudRenderer::initializeGL()
 {
-  glClearColor(0,0,0,1);
+  glClearColor(0.45f, 0.45f, 0.45f, 0.0f);
+
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_LIGHTING);
-  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-  glEnable(GL_COLOR_MATERIAL);
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER, 0.0f);
+
+  glMatrixMode(GL_PROJECTION);
+  gluPerspective(50.0, 1.0, 900.0, 11000.0);
+
 }
 
 void PointCloudRenderer::paintGL()
 {
-  glClearColor(0,0,0,1);
+  std::cout << "pain"<<std::endl;
+  if (!device.has_value()){
+    glClearColor(1.0,0,0,1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    return;
+  }
+  MyFreenectDevice *dev = device.value();
+  bool color = true;
+  float zoom = 1;
+  float anglex = 0;
+  float angley = 0;
+  std::scoped_lock rgb_lock{dev->m_rgb_mutex};
+  std::scoped_lock depth_lock{dev->m_depth_mutex};
+
+  std::vector<uint8_t> &rgb = dev->m_buffer_video;
+  std::vector<uint16_t> &depth = dev->m_buffer_depth;
+  glClearColor(0.45f, 0.45f, 0.45f, 0.0f);
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glBegin(GL_TRIANGLES);
-  glColor3f(1.0, 0.0, 0.0);
-  glVertex3f(-0.5, -0.5, 0);
-  glColor3f(0.0, 1.0, 0.0);
-  glVertex3f( 0.5, -0.5, 0);
-  glColor3f(0.0, 0.0, 1.0);
-  glVertex3f( 0.0,  0.5, 0);
+  glPointSize(1.0f);
+
+  glBegin(GL_POINTS);
+
+  if (!color){glColor3ub(255, 255, 255);}
+  for (int i = 0; i < 480 * 640; ++i) {
+
+    if (color){
+      glColor3ub(rgb[3 * i + 0],  // R
+                 rgb[3 * i + 1],  // G
+                 rgb[3 * i + 2]); // B
+    }
+
+    float f = 595.f;
+    // Convert from image plane coordinates to world coordinates
+    glVertex3f(
+        (i % 640 - (640 - 1) / 2.f) * depth[i] / f, // X = (x - cx) * d / fx
+        (i / 640 - (480 - 1) / 2.f) * depth[i] / f, // Y = (y - cy) * d / fy
+        depth[i]);                                  // Z = d
+  }
+
   glEnd();
+
+  // Draw the world coordinate frame
+  glLineWidth(2.0f);
+  glBegin(GL_LINES);
+  glColor3ub(255, 0, 0); // X-axis
+  glVertex3f(0, 0, 0);
+  glVertex3f(50, 0, 0);
+  glColor3ub(0, 255, 0); // Y-axis
+  glVertex3f(0, 0, 0);
+  glVertex3f(0, 50, 0);
+  glColor3ub(0, 0, 255); // Z-axis
+  glVertex3f(0, 0, 0);
+  glVertex3f(0, 0, 50);
+  glEnd();
+
+  // Place the camera
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glScalef(zoom, zoom, 1);
+  gluLookAt(-7 * anglex, -7 * angley, -1000.0, 0.0, 0.0, 2000.0, 0.0, -1.0,
+            0.0);
+
+  this->update();
 }
 
 void PointCloudRenderer::resizeGL(int w, int h)
 {
-  glViewport(0,0,w,h);
+  glViewport(0, 0, w, h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(45, (float)w/h, 0.01, 100.0);
+  gluPerspective(50.0, (float)w / h, 900.0, 11000.0);
+
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  gluLookAt(0,0,5,0,0,0,0,1,0);
 }
+
+void PointCloudRenderer::set_device(MyFreenectDevice *dev){
+  device = dev;
+}
+void PointCloudRenderer::unset_device(){
+  device = std::nullopt;
+}
+
 
 PointCloudRenderer::~PointCloudRenderer()
 {

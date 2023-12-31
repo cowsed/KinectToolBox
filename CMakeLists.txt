@@ -72,7 +72,8 @@ target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_directories(KinectToolBox PUBLIC /usr/lib/libfreenect)
 target_link_libraries(KinectToolBox PRIVATE freenect)
-
+target_link_options(KinectToolBox  PUBLIC -fsanitize=address)
+target_compile_options(KinectToolBox PUBLIC  -fsanitize=address)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

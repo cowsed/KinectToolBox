@@ -14,9 +14,41 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="PointCloudRenderer" name="openGLWidget"/>
+     <widget class="PointCloudRenderer" name="viewportWidget">
+      <property name="minimumSize">
+       <size>
+        <width>10</width>
+        <height>10</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="pointsInfo">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Points :)</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -36,15 +68,148 @@
     <addaction name="actionQuit"/>
     <addaction name="separator"/>
    </widget>
+   <widget class="QMenu" name="menuDevice">
+    <property name="title">
+     <string>Device</string>
+    </property>
+    <addaction name="actionReconnect"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuDevice"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="AngleDockWidget">
+   <property name="windowTitle">
+    <string>Control</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
+      <widget class="QSlider" name="angleSlider">
+       <property name="minimum">
+        <number>-30</number>
+       </property>
+       <property name="maximum">
+        <number>30</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <layout class="QVBoxLayout" name="TiltLayout">
+       <item>
+        <widget class="QLabel" name="targetAngleLabel">
+         <property name="text">
+          <string>Target Angle: ?</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="curAngleLabel">
+         <property name="text">
+          <string>Current Angle: ?</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="accLabel">
+         <property name="text">
+          <string>Accel: ?</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="2">
+      <layout class="QVBoxLayout" name="ledLayout">
+       <item>
+        <widget class="QLabel" name="ledLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>LED</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="ledOff">
+         <property name="text">
+          <string>Off</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="ledGreen">
+         <property name="text">
+          <string>Green</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="ledYellow">
+         <property name="text">
+          <string>Yellow</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="ledRed">
+         <property name="text">
+          <string>Red</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="ledBlinkGreen">
+         <property name="text">
+          <string>Blink Green</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="ledRedYellow">
+         <property name="text">
+          <string>Red-Yellow</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionReconnect">
+   <property name="text">
+    <string>Reconnect</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>
@@ -73,9 +238,129 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>angleSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>set_angle(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>16</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionReconnect</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>try_connect_kinect()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ledOff</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>led_off()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>600</x>
+     <y>411</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ledGreen</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>led_green()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>600</x>
+     <y>440</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ledYellow</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>led_yellow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>600</x>
+     <y>469</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ledBlinkGreen</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>led_blink_green()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>600</x>
+     <y>527</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ledRedYellow</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>led_blink_red_yellow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>600</x>
+     <y>556</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>quit()</slot>
   <slot>redraw()</slot>
+  <slot>set_angle(int)</slot>
+  <slot>try_connect_kinect()</slot>
+  <slot>led_off()</slot>
+  <slot>led_green()</slot>
+  <slot>led_yellow()</slot>
+  <slot>led_red()</slot>
+  <slot>led_blink_green()</slot>
+  <slot>led_blink_red_yellow()</slot>
  </slots>
 </ui>

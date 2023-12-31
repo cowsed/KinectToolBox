@@ -6,7 +6,7 @@ MyFreenectDevice::MyFreenectDevice(freenect_context *_ctx, int _index)
     m_buffer_video(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM,
                                             FREENECT_VIDEO_RGB).bytes),
     m_buffer_depth(freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM,
-                                            FREENECT_DEPTH_REGISTERED).bytes /2),
+                                            FREENECT_DEPTH_REGISTERED).bytes/2),
     m_new_rgb_frame(false), m_new_depth_frame(false) {
   setDepthFormat(FREENECT_DEPTH_REGISTERED);
 }
@@ -16,6 +16,7 @@ void MyFreenectDevice::VideoCallback(void *_rgb, uint32_t timestamp) {
   uint8_t *rgb = static_cast<uint8_t *>(_rgb);
   copy(rgb, rgb + getVideoBufferSize(), m_buffer_video.begin());
   m_new_rgb_frame = true;
+  rgb_timestamp = timestamp;
   rgb_count++;
 }
 
@@ -25,6 +26,7 @@ void MyFreenectDevice::DepthCallback(void *_depth, uint32_t timestamp) {
   uint16_t *depth = static_cast<uint16_t *>(_depth);
   copy(depth, depth + getDepthBufferSize() / 2, m_buffer_depth.begin());
   m_new_depth_frame = true;
+  depth_timestamp = timestamp;
   depth_count++;
 }
 
