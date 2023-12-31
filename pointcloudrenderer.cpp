@@ -30,6 +30,15 @@ void PointCloudRenderer::initializeGL()
 
 }
 
+void PointCloudRenderer::set_x_angle(int ang){
+  anglex = ang;
+}
+void PointCloudRenderer::set_y_angle(int ang){
+  angley = ang;
+  // ui->
+}
+
+
 void PointCloudRenderer::paintGL()
 {
   std::cout << "pain"<<std::endl;
@@ -41,8 +50,8 @@ void PointCloudRenderer::paintGL()
   MyFreenectDevice *dev = device.value();
   bool color = true;
   float zoom = 1;
-  float anglex = 0;
-  float angley = 0;
+
+
   std::scoped_lock rgb_lock{dev->m_rgb_mutex};
   std::scoped_lock depth_lock{dev->m_depth_mutex};
 

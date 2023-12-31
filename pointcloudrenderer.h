@@ -20,6 +20,10 @@ public:
   void set_device(MyFreenectDevice *dev);
   void unset_device();
 
+public slots:
+  void set_x_angle(int ang);
+  void set_y_angle(int ang);
+
 protected:
   void initializeGL();
   void resizeGL(int w, int h);
@@ -27,6 +31,9 @@ protected:
   void timerEvent(QTimerEvent *event);
 
 private:
+  float angley = 0;
+  float anglex = 0;
+
   Ui::PointCloudRenderer *ui;
   std::optional<MyFreenectDevice*> device;
 };

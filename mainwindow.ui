@@ -29,6 +29,12 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="PointCloudRenderer" name="viewportWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>10</width>
@@ -36,6 +42,59 @@
        </size>
       </property>
      </widget>
+    </item>
+    <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
+      </property>
+      <item row="0" column="1">
+       <widget class="QSlider" name="angleYSlider">
+        <property name="minimum">
+         <number>-90</number>
+        </property>
+        <property name="maximum">
+         <number>90</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QSlider" name="angleXSlider">
+        <property name="minimum">
+         <number>-180</number>
+        </property>
+        <property name="maximum">
+         <number>180</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="angleXLabel">
+        <property name="text">
+         <string>AngleX: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="angleYLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>AngleY: 0</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QLabel" name="pointsInfo">
@@ -218,6 +277,10 @@
    <class>PointCloudRenderer</class>
    <extends>QOpenGLWidget</extends>
    <header>pointcloudrenderer.h</header>
+   <slots>
+    <slot>set_x_angle(int)</slot>
+    <slot>set_y_angle(int)</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -347,6 +410,38 @@
     <hint type="destinationlabel">
      <x>399</x>
      <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>angleXSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>viewportWidget</receiver>
+   <slot>set_x_angle(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>303</x>
+     <y>514</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>466</x>
+     <y>265</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>angleYSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>viewportWidget</receiver>
+   <slot>set_y_angle(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>629</x>
+     <y>514</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>466</x>
+     <y>265</y>
     </hint>
    </hints>
   </connection>
