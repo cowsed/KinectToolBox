@@ -30,4 +30,8 @@
  </widget>
  <resources/>
  <connections/>
+ <slots>
+  <slot>set_rgb_data(uint8_t*)</slot>
+  <slot>set_depth_data(uint16_t*)</slot>
+ </slots>
 </ui>

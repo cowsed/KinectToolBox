@@ -19,9 +19,8 @@ enum class KinectConnectionStatus{
   Unknown,
 };
 
-class MainWindow : public QMainWindow
-{
-  Q_OBJECT
+class MainWindow : public QMainWindow {
+    Q_OBJECT
 
 public:
   MainWindow(QApplication &qap, QWidget *parent = nullptr);
@@ -47,7 +46,14 @@ public slots:
   void led_blink_red_yellow();
   void set_led(freenect_led_options opt);
 
-private:
+  void ir_on();
+  void ir_off();
+
+  signals:
+  void new_rgb_data(std::span<uint8_t> data);
+  void new_depth_data(std::span<uint16_t> data);
+
+  private:
   static void data_check_thread_runner(MainWindow *win);
   Ui::MainWindow *ui;
   QApplication &qap;
@@ -61,6 +67,5 @@ private:
 
   // needed here cuz status bar widgets are weird
   QLabel *connection_status_label;
-
 };
 #endif // MAINWINDOW_H

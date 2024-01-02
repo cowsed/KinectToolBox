@@ -40,6 +40,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         pointcloudrenderer.h pointcloudrenderer.cpp pointcloudrenderer.ui
         myfreenectdevice.h myfreenectdevice.cpp
+        videoplayer.h videoplayer.cpp videoplayer.ui
+        aspectratiopixmaplabel.h aspectratiopixmaplabel.cpp aspectratiopixmaplabel.ui
+        math.h math.cpp
+
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET KinectToolBox APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -72,8 +78,9 @@ target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_directories(KinectToolBox PUBLIC /usr/lib/libfreenect)
 target_link_libraries(KinectToolBox PRIVATE freenect)
-target_link_options(KinectToolBox  PUBLIC -fsanitize=address)
-target_compile_options(KinectToolBox PUBLIC  -fsanitize=address)
+
+# target_link_options(KinectToolBox  PUBLIC -fsanitize=address)
+# target_compile_options(KinectToolBox PUBLIC  -fsanitize=address)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

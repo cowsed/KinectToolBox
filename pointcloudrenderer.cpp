@@ -4,10 +4,11 @@
 #include <GL/glu.h>
 #include <GL/gl.h>
 #include <iostream>
-PointCloudRenderer::PointCloudRenderer(QWidget *parent)
+PointCloudRenderer::PointCloudRenderer(QWidget* parent)
     : QOpenGLWidget(parent)
     , QBasicTimer()
     , ui(new Ui::PointCloudRenderer)
+    , points(640 * 480, { 0, 0, 0, 0, 0, 0 })
 {
   ui->setupUi(this);
   QBasicTimer::start(16, Qt::TimerType::PreciseTimer, this);
@@ -35,28 +36,22 @@ void PointCloudRenderer::set_x_angle(int ang){
 }
 void PointCloudRenderer::set_y_angle(int ang){
   angley = ang;
-  // ui->
 }
-
+void PointCloudRenderer::set_zoom(int newzoom)
+{
+  zoom = newzoom / 40.0;
+}
 
 void PointCloudRenderer::paintGL()
 {
-  std::cout << "pain"<<std::endl;
   if (!device.has_value()){
     glClearColor(1.0,0,0,1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return;
   }
-  MyFreenectDevice *dev = device.value();
   bool color = true;
-  float zoom = 1;
 
 
-  std::scoped_lock rgb_lock{dev->m_rgb_mutex};
-  std::scoped_lock depth_lock{dev->m_depth_mutex};
-
-  std::vector<uint8_t> &rgb = dev->m_buffer_video;
-  std::vector<uint16_t> &depth = dev->m_buffer_depth;
   glClearColor(0.45f, 0.45f, 0.45f, 0.0f);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -66,20 +61,15 @@ void PointCloudRenderer::paintGL()
   glBegin(GL_POINTS);
 
   if (!color){glColor3ub(255, 255, 255);}
-  for (int i = 0; i < 480 * 640; ++i) {
+
+  for (int i = 0; i < points.size(); ++i) {
+    auto p = points[i];
 
     if (color){
-      glColor3ub(rgb[3 * i + 0],  // R
-                 rgb[3 * i + 1],  // G
-                 rgb[3 * i + 2]); // B
+        glColor3ub(points[i].r, points[i].g, points[i].b);
     }
 
-    float f = 595.f;
-    // Convert from image plane coordinates to world coordinates
-    glVertex3f(
-        (i % 640 - (640 - 1) / 2.f) * depth[i] / f, // X = (x - cx) * d / fx
-        (i / 640 - (480 - 1) / 2.f) * depth[i] / f, // Y = (y - cy) * d / fy
-        depth[i]);                                  // Z = d
+    glVertex3f(p.pos.x, p.pos.y, p.pos.z);
   }
 
   glEnd();
@@ -125,6 +115,23 @@ void PointCloudRenderer::unset_device(){
   device = std::nullopt;
 }
 
+void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data)
+{
+  for (size_t i = 0; i < points.size(); i++) {
+    points[i].r = data[3 * i];
+    points[i].g = data[3 * i + 1];
+    points[i].b = data[3 * i + 2];
+  }
+}
+void PointCloudRenderer::set_depth_data(std::span<uint16_t> data)
+{
+  for (size_t i = 0; i < data.size(); i++) {
+    int x = i % 640;
+    int y = i / 640;
+    uint16_t depth = data[i];
+    points[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
+  }
+}
 
 PointCloudRenderer::~PointCloudRenderer()
 {

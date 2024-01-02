@@ -1,21 +1,31 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include <iostream>
-#include <format>
+#include "videoplayer.h"
 #include <QStyle>
+#include <format>
+#include <iostream>
+#include <span>
 
-MainWindow::MainWindow(QApplication &qap, QWidget *parent)
+MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), qap(qap)
+    , ui(new Ui::MainWindow)
+    , qap(qap)
 {
-  ui->setupUi(this);
-  connection_status_label = new QLabel(this);
-  connection_status_label->setTextFormat(Qt::MarkdownText);
-  ui->statusbar->addPermanentWidget(connection_status_label);
-  set_connection_status_ui(KinectConnectionStatus::Unknown);
+    ui->setupUi(this);
+    // connect template slots
+    QObject::connect(this, &MainWindow::new_rgb_data, ui->viewportWidget, &PointCloudRenderer::set_rgb_data);
+    QObject::connect(this, &MainWindow::new_depth_data, ui->viewportWidget, &PointCloudRenderer::set_depth_data);
 
-  try_connect_kinect();
+    QObject::connect(this, &MainWindow::new_rgb_data, ui->videoPlayer, &VideoPlayer::set_rgb_data);
+    QObject::connect(this, &MainWindow::new_depth_data, ui->videoPlayer, &VideoPlayer::set_depth_data);
 
+    // Setup Statusbar (its a little funny)
+    connection_status_label = new QLabel(this);
+    connection_status_label->setTextFormat(Qt::MarkdownText);
+    ui->statusbar->addPermanentWidget(connection_status_label);
+    set_connection_status_ui(KinectConnectionStatus::Unknown);
+
+    try_connect_kinect();
 }
 
 void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
@@ -38,6 +48,15 @@ void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
 void MainWindow::try_connect_kinect(){
   try {
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
+
+    freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
+        emit new_rgb_data(new_data);
+    });
+
+    freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
+        emit new_depth_data(new_data);
+    });
+
     freenect_device->startVideo();
     freenect_device->startDepth();
 
@@ -57,6 +76,15 @@ void MainWindow::try_connect_kinect(){
   }
 }
 
+void MainWindow::ir_on()
+{
+  freenect_device->setVideoFormat(FREENECT_VIDEO_IR_8BIT);
+}
+void MainWindow::ir_off()
+{
+  freenect_device->setVideoFormat(FREENECT_VIDEO_RGB);
+}
+
 void MainWindow::set_angle(int angle){
   if (freenect_device == nullptr){
     return;
@@ -66,16 +94,18 @@ void MainWindow::set_angle(int angle){
   ui->targetAngleLabel->setText(QString::fromStdString(std::format("Target: {} deg", angle)));
 }
 
-void MainWindow::quit(){
+void MainWindow::quit()
+{
   thread_should_stop = true;
-  if (freenect_device!=nullptr){
+  if (freenect_device != nullptr) {
     freenect_device->stopVideo();
     freenect_device->stopDepth();
+    std::cout << "rgb samples: " << freenect_device->rgb_samples() << '\n';
+    std::cout << "depth samples: " << freenect_device->depth_samples() << '\n';
   }
 
-  std::cout << "rgb samples: "<<freenect_device->rgb_samples() <<'\n';
-  std::cout << "depth samples: "<<freenect_device->depth_samples() <<'\n';
-  std::cout << "quit\n"<<std::endl;
+  std::cout << "quit\n"
+            << std::endl;
   data_check_thread.join();
   this->close();
 }
@@ -92,7 +122,7 @@ std::string string_motion_code(freenect_tilt_status_code code){
 
 void MainWindow::data_check_thread_runner(MainWindow *win_ptr){
   MainWindow &win = *win_ptr;
-  while(!win.thread_should_stop){
+  while (!win.thread_should_stop) {
     win.freenect_device->updateState();
     auto state = win.freenect_device->getState();
     {
@@ -118,19 +148,21 @@ void MainWindow::data_check_thread_runner(MainWindow *win_ptr){
 void MainWindow::led_off(){
   set_led(freenect_led_options::LED_OFF);
 }
-void MainWindow::led_green(){
+void MainWindow::led_green()
+{
   set_led(freenect_led_options::LED_GREEN);
-
 }
+
 void MainWindow::led_yellow(){
   set_led(freenect_led_options::LED_YELLOW);
-
 }
-void MainWindow::led_red(){
+void MainWindow::led_red()
+{
   set_led(freenect_led_options::LED_RED);
-
 }
-void MainWindow::led_blink_green(){  set_led(freenect_led_options::LED_BLINK_GREEN);
+void MainWindow::led_blink_green()
+{
+  set_led(freenect_led_options::LED_BLINK_GREEN);
 }
 void MainWindow::led_blink_red_yellow(){
   set_led(freenect_led_options::LED_BLINK_RED_YELLOW);
