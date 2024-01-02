@@ -1,4 +1,5 @@
 #include "pointcloudrenderer.h"
+#include "qevent.h"
 #include "ui_pointcloudrenderer.h"
 
 #include <GL/glu.h>
@@ -12,6 +13,7 @@ PointCloudRenderer::PointCloudRenderer(QWidget* parent)
 {
   ui->setupUi(this);
   QBasicTimer::start(16, Qt::TimerType::PreciseTimer, this);
+  setMouseTracking(true);
 }
 
 
@@ -92,9 +94,9 @@ void PointCloudRenderer::paintGL()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glScalef(zoom, zoom, 1);
+  // glRotated(anglex, 0, 0, 0);
   gluLookAt(-7 * anglex, -7 * angley, -1000.0, 0.0, 0.0, 2000.0, 0.0, -1.0,
-            0.0);
-
+      0.0);
   this->update();
 }
 
@@ -115,14 +117,54 @@ void PointCloudRenderer::unset_device(){
   device = std::nullopt;
 }
 
-void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data)
+void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
 {
   for (size_t i = 0; i < points.size(); i++) {
-    points[i].r = data[3 * i];
-    points[i].g = data[3 * i + 1];
-    points[i].b = data[3 * i + 2];
+    if (typ == VideoType::RGB) {
+        points[i].r = data[3 * i];
+        points[i].g = data[3 * i + 1];
+        points[i].b = data[3 * i + 2];
+    } else {
+        points[i].r = data[i];
+        points[i].g = data[i];
+        points[i].b = data[i];
+    }
   }
 }
+
+void PointCloudRenderer::wheelEvent(QWheelEvent* event)
+{
+
+  float amt = event->pixelDelta().y();
+  zoom += amt / 800;
+  if (zoom <= 0) {
+    zoom = 0.05;
+  }
+}
+void PointCloudRenderer::mousePressEvent(QMouseEvent* event)
+{
+
+  if (event->buttons().testFlag(Qt::MouseButton::MiddleButton)) {
+    anglex = 0;
+    angley = 0;
+    zoom = 1;
+  }
+}
+
+void PointCloudRenderer::mouseMoveEvent(QMouseEvent* event)
+{
+  int rx = event->pos().rx();
+  int ry = event->pos().ry();
+  int dx = rx - last_rx;
+  int dy = ry - last_ry;
+  if (event->buttons().testFlag(Qt::MouseButton::LeftButton)) {
+    anglex += (dx * 0.5);
+    angley += (dy * 0.5);
+  }
+  last_rx = rx;
+  last_ry = ry;
+}
+
 void PointCloudRenderer::set_depth_data(std::span<uint16_t> data)
 {
   for (size_t i = 0; i < data.size(); i++) {

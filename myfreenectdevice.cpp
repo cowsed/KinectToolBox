@@ -1,4 +1,5 @@
 #include "myfreenectdevice.h"
+#include <iostream>
 
 MyFreenectDevice::MyFreenectDevice(freenect_context* _ctx, int _index)
     : Freenect::FreenectDevice(_ctx, _index)

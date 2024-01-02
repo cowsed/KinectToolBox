@@ -28,44 +28,46 @@ public:
 
 
 public slots:
-  void try_connect_kinect();
-  /**
-   * @brief set_connection_status_ui
-   * @param stat status of the connection, changes the representation in the status bar
-   */
-  void set_connection_status_ui(KinectConnectionStatus stat);
+    void try_connect_kinect();
+    /**
+     * @brief set_connection_status_ui
+     * @param stat status of the connection, changes the representation in the status bar
+     */
+    void set_connection_status_ui(KinectConnectionStatus stat);
 
-  void set_angle(int angle);
-  void quit();
+    void set_angle(int angle);
+    void quit();
 
-  void led_off();
-  void led_green();
-  void led_yellow();
-  void led_red();
-  void led_blink_green();
-  void led_blink_red_yellow();
-  void set_led(freenect_led_options opt);
+    void led_off();
+    void led_green();
+    void led_yellow();
+    void led_red();
+    void led_blink_green();
+    void led_blink_red_yellow();
+    void set_led(freenect_led_options opt);
 
-  void ir_on();
-  void ir_off();
+    void ir_on();
+    void ir_off();
+    void set_ir(int on);
 
-  signals:
-  void new_rgb_data(std::span<uint8_t> data);
-  void new_depth_data(std::span<uint16_t> data);
+signals:
+    void new_rgb_data(std::span<uint8_t> data, VideoType typ);
+    void new_depth_data(std::span<uint16_t> data);
 
-  private:
-  static void data_check_thread_runner(MainWindow *win);
-  Ui::MainWindow *ui;
-  QApplication &qap;
-  Freenect::Freenect freenect_ctx;
-  MyFreenectDevice *freenect_device = nullptr;
+private:
+    static void data_check_thread_runner(MainWindow* win);
+    Ui::MainWindow* ui;
+    QApplication& qap;
+    Freenect::Freenect freenect_ctx;
+    MyFreenectDevice* freenect_device = nullptr;
+    VideoType current_video_type;
 
-  std::thread data_check_thread;
-  std::mutex data_mtx;
-  std::optional<Freenect::FreenectTiltState> tilt_state;
-  bool thread_should_stop = false;
+    std::thread data_check_thread;
+    std::mutex data_mtx;
+    std::optional<Freenect::FreenectTiltState> tilt_state;
+    bool thread_should_stop = false;
 
-  // needed here cuz status bar widgets are weird
-  QLabel *connection_status_label;
+    // needed here cuz status bar widgets are weird
+    QLabel* connection_status_label;
 };
 #endif // MAINWINDOW_H

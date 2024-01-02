@@ -18,14 +18,13 @@ public:
 
 public slots:
     // these are kinda race conditions waiting to happen
-    void set_rgb_data(std::span<uint8_t> data);
+    void set_rgb_data(std::span<uint8_t> data, VideoType typ);
     void set_depth_data(std::span<uint16_t> data);
 
 private:
     Ui::VideoPlayer* ui;
     QImage depth_img;
     QImage rgb_img;
-    ColorGradient color_gradient;
 };
 
 #endif // VIDEOPLAYER_H

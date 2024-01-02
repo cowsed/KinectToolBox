@@ -10,6 +10,7 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , qap(qap)
+    , current_video_type(VideoType::RGB)
 {
     ui->setupUi(this);
     // connect template slots
@@ -24,6 +25,14 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     connection_status_label->setTextFormat(Qt::MarkdownText);
     ui->statusbar->addPermanentWidget(connection_status_label);
     set_connection_status_ui(KinectConnectionStatus::Unknown);
+
+    // Add dock control menu
+    auto menu = createPopupMenu();
+    if (menu == nullptr) {
+        std::cout << "BAD" << std::endl;
+    }
+    menu->setTitle("Window");
+    ui->menubar->addMenu(menu);
 
     try_connect_kinect();
 }
@@ -50,7 +59,7 @@ void MainWindow::try_connect_kinect(){
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
     freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
-        emit new_rgb_data(new_data);
+        emit new_rgb_data(new_data, current_video_type);
     });
 
     freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
@@ -76,13 +85,24 @@ void MainWindow::try_connect_kinect(){
   }
 }
 
+void MainWindow::set_ir(int on)
+{
+  if (on) {
+    ir_on();
+  } else {
+    ir_off();
+  }
+}
+
 void MainWindow::ir_on()
 {
   freenect_device->setVideoFormat(FREENECT_VIDEO_IR_8BIT);
+  current_video_type = VideoType::IR;
 }
 void MainWindow::ir_off()
 {
   freenect_device->setVideoFormat(FREENECT_VIDEO_RGB);
+  current_video_type = VideoType::RGB;
 }
 
 void MainWindow::set_angle(int angle){

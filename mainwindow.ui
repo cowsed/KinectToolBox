@@ -48,75 +48,6 @@
       <property name="sizeConstraint">
        <enum>QLayout::SetMinimumSize</enum>
       </property>
-      <item row="0" column="1">
-       <widget class="QSlider" name="angleYSlider">
-        <property name="minimum">
-         <number>-90</number>
-        </property>
-        <property name="maximum">
-         <number>90</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="angleYLabel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>AngleY: 0</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="angleXLabel">
-        <property name="text">
-         <string>AngleX:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QSlider" name="angleXSlider">
-        <property name="minimum">
-         <number>-180</number>
-        </property>
-        <property name="maximum">
-         <number>180</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QSlider" name="zoomSlider">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>50</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="zoomLabel">
-        <property name="text">
-         <string>Zoom</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>
@@ -160,7 +91,10 @@
    <addaction name="menuDevice"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="zAngleDockWidget">
+  <widget class="QDockWidget" name="controlDockWidget">
+   <property name="mouseTracking">
+    <bool>false</bool>
+   </property>
    <property name="windowTitle">
     <string>Control</string>
    </property>
@@ -175,26 +109,25 @@
      </size>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
-     <item row="0" column="2">
-      <layout class="QVBoxLayout" name="TiltLayout">
+     <item row="3" column="2">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QLabel" name="targetAngleLabel">
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Target Angle: ?</string>
+          <string>Video</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="curAngleLabel">
+        <widget class="QCheckBox" name="irCheckBox">
          <property name="text">
-          <string>Current Angle: ?</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="accLabel">
-         <property name="text">
-          <string>Accel: ?</string>
+          <string>IR</string>
          </property>
         </widget>
        </item>
@@ -218,19 +151,6 @@
        <property name="spacing">
         <number>1</number>
        </property>
-       <item>
-        <widget class="QLabel" name="ledLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>LED</string>
-         </property>
-        </widget>
-       </item>
        <item>
         <widget class="QRadioButton" name="ledOff">
          <property name="text">
@@ -284,8 +204,36 @@
        </item>
       </layout>
      </item>
-     <item row="2" column="2">
-      <widget class="QComboBox" name="cameraModeBox"/>
+     <item row="0" column="2">
+      <layout class="QVBoxLayout" name="TiltLayout">
+       <item>
+        <widget class="QLabel" name="targetAngleLabel">
+         <property name="text">
+          <string>Target Angle: ?</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="curAngleLabel">
+         <property name="text">
+          <string>Current Angle: ?</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="accLabel">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Accel: ?</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>
@@ -471,50 +419,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>angleXSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>viewportWidget</receiver>
-   <slot>set_x_angle(int)</slot>
+   <sender>irCheckBox</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>set_ir(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>303</x>
-     <y>514</y>
+     <x>744</x>
+     <y>485</y>
     </hint>
     <hint type="destinationlabel">
-     <x>466</x>
-     <y>265</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>angleYSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>viewportWidget</receiver>
-   <slot>set_y_angle(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>629</x>
-     <y>514</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>466</x>
-     <y>265</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zoomSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>viewportWidget</receiver>
-   <slot>set_zoom(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>683</x>
-     <y>514</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>466</x>
-     <y>265</y>
+     <x>399</x>
+     <y>299</y>
     </hint>
    </hints>
   </connection>
@@ -530,5 +446,8 @@
   <slot>led_red()</slot>
   <slot>led_blink_green()</slot>
   <slot>led_blink_red_yellow()</slot>
+  <slot>ir_on()</slot>
+  <slot>ir_off()</slot>
+  <slot>set_ir(int)</slot>
  </slots>
 </ui>
