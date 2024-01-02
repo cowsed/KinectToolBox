@@ -9,6 +9,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+set(ADDRESS_SANITIZE OFF)
 
 add_compile_definitions(QT_FATAL_WARNINGS=1)
 
@@ -81,8 +82,10 @@ target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_directories(KinectToolBox PUBLIC /usr/lib/libfreenect)
 target_link_libraries(KinectToolBox PRIVATE freenect)
 
-# target_link_options(KinectToolBox  PUBLIC -fsanitize=address)
-# target_compile_options(KinectToolBox PUBLIC  -fsanitize=address)
+if (${ADDRESS_SANITIZE})
+    target_link_options(KinectToolBox  PUBLIC -fsanitize=address)
+    target_compile_options(KinectToolBox PUBLIC  -fsanitize=address)
+endif()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
