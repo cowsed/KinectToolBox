@@ -26,6 +26,7 @@ public slots:
   void set_zoom(int zoom);
   void set_rgb_data(std::span<uint8_t>, VideoType typ);
   void set_depth_data(std::span<uint16_t>);
+  void set_point_size(int size);
 
   protected:
   void initializeGL();
@@ -40,6 +41,7 @@ public slots:
   float angley = 0;
   float anglex = 0;
   float zoom = 1;
+  float point_size = 1;
   struct RGBPoint {
       vec3 pos;
       uint8_t r, g, b;

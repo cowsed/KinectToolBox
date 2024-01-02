@@ -13,7 +13,6 @@ PointCloudRenderer::PointCloudRenderer(QWidget* parent)
 {
   ui->setupUi(this);
   QBasicTimer::start(16, Qt::TimerType::PreciseTimer, this);
-  setMouseTracking(true);
 }
 
 
@@ -43,6 +42,10 @@ void PointCloudRenderer::set_zoom(int newzoom)
 {
   zoom = newzoom / 40.0;
 }
+void PointCloudRenderer::set_point_size(int size)
+{
+  point_size = size;
+}
 
 void PointCloudRenderer::paintGL()
 {
@@ -58,7 +61,7 @@ void PointCloudRenderer::paintGL()
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glPointSize(1.0f);
+  glPointSize(point_size);
 
   glBegin(GL_POINTS);
 
@@ -130,6 +133,7 @@ void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
         points[i].b = data[i];
     }
   }
+  ui->numPointsLabel->setText(QString::fromStdString(std::format("{} points", points.size())));
 }
 
 void PointCloudRenderer::wheelEvent(QWheelEvent* event)
