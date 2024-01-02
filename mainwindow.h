@@ -28,7 +28,10 @@ public:
 
 
 public slots:
+    void take_capture();
+
     void try_connect_kinect();
+    void disconnect_kinect();
     /**
      * @brief set_connection_status_ui
      * @param stat status of the connection, changes the representation in the status bar
@@ -53,6 +56,8 @@ public slots:
 signals:
     void new_rgb_data(std::span<uint8_t> data, VideoType typ);
     void new_depth_data(std::span<uint16_t> data);
+    void kinect_connected();
+    void kinect_disconnected();
 
 private:
     static void data_check_thread_runner(MainWindow* win);

@@ -12,10 +12,15 @@ PointCloudRenderer::PointCloudRenderer(QWidget* parent)
     , points(640 * 480, { 0, 0, 0, 0, 0, 0 })
 {
   ui->setupUi(this);
+  ui->numPointsLabel->setText("Disconnected");
   QBasicTimer::start(16, Qt::TimerType::PreciseTimer, this);
 }
 
-
+void PointCloudRenderer::reset()
+{
+  device = std::nullopt;
+  ui->numPointsLabel->setText("Disconnected");
+}
 void PointCloudRenderer::timerEvent(QTimerEvent *event){
   paintGL();
 }
@@ -116,12 +121,12 @@ void PointCloudRenderer::resizeGL(int w, int h)
 void PointCloudRenderer::set_device(MyFreenectDevice *dev){
   device = dev;
 }
-void PointCloudRenderer::unset_device(){
-  device = std::nullopt;
-}
 
 void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
 {
+  if (!device.has_value()) {
+    return;
+  }
   for (size_t i = 0; i < points.size(); i++) {
     if (typ == VideoType::RGB) {
         points[i].r = data[3 * i];
@@ -134,6 +139,19 @@ void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
     }
   }
   ui->numPointsLabel->setText(QString::fromStdString(std::format("{} points", points.size())));
+}
+
+void PointCloudRenderer::set_depth_data(std::span<uint16_t> data)
+{
+  if (!device.has_value()) {
+    return;
+  }
+  for (size_t i = 0; i < data.size(); i++) {
+    int x = i % 640;
+    int y = i / 640;
+    uint16_t depth = data[i];
+    points[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
+  }
 }
 
 void PointCloudRenderer::wheelEvent(QWheelEvent* event)
@@ -167,16 +185,6 @@ void PointCloudRenderer::mouseMoveEvent(QMouseEvent* event)
   }
   last_rx = rx;
   last_ry = ry;
-}
-
-void PointCloudRenderer::set_depth_data(std::span<uint16_t> data)
-{
-  for (size_t i = 0; i < data.size(); i++) {
-    int x = i % 640;
-    int y = i / 640;
-    uint16_t depth = data[i];
-    points[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
-  }
 }
 
 PointCloudRenderer::~PointCloudRenderer()

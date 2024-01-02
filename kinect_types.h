@@ -1,5 +1,5 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef KINECT_TYPES_H
+#define KINECT_TYPES_H
 
 #include <cstdint>
 #include <vector>
@@ -20,4 +20,4 @@ enum class VideoType {
     IR,
 };
 
-#endif // MATH_H
+#endif // KINECT_TYPES_H

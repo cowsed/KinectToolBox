@@ -1,2 +1,1 @@
-#include "math.h"
-
+#include "kinect_types.h"

@@ -27,33 +27,51 @@
     </size>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
-     <widget class="PointCloudRenderer" name="viewportWidget">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <property name="minimumSize">
-       <size>
-        <width>10</width>
-        <height>10</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="pointsInfo">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Points :)</string>
-      </property>
+      <widget class="QWidget" name="previewTab">
+       <attribute name="title">
+        <string>Live Points</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="PointCloudRenderer" name="viewportWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>10</width>
+            <height>10</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="captureTab">
+       <attribute name="title">
+        <string>Capture</string>
+       </attribute>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -79,6 +97,7 @@
      <string>Device</string>
     </property>
     <addaction name="actionReconnect"/>
+    <addaction name="actionDisconnect"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuDevice"/>
@@ -249,6 +268,17 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="captureDock">
+   <property name="windowTitle">
+    <string>Captures</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="CaptureList" name="captureList">
+    <layout class="QVBoxLayout" name="verticalLayout_4"/>
+   </widget>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
@@ -259,10 +289,18 @@
   </action>
   <action name="actionReconnect">
    <property name="text">
-    <string>Reconnect</string>
+    <string>Connect</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionDisconnect">
+   <property name="text">
+    <string>Disconnect</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
  </widget>
@@ -275,12 +313,23 @@
     <slot>set_x_angle(int)</slot>
     <slot>set_y_angle(int)</slot>
     <slot>set_zoom(int)</slot>
+    <slot>reset()</slot>
    </slots>
   </customwidget>
   <customwidget>
    <class>VideoPlayer</class>
    <extends>QWidget</extends>
    <header>videoplayer.h</header>
+   <container>1</container>
+   <slots>
+    <slot>reset()</slot>
+    <slot>start()</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>CaptureList</class>
+   <extends>QWidget</extends>
+   <header>capturelist.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -430,8 +479,74 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionDisconnect</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>disconnect_kinect()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>MainWindow</sender>
+   <signal>kinect_disconnected()</signal>
+   <receiver>viewportWidget</receiver>
+   <slot>reset()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>358</x>
+     <y>313</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>MainWindow</sender>
+   <signal>kinect_disconnected()</signal>
+   <receiver>videoPlayer</receiver>
+   <slot>reset()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>729</x>
+     <y>549</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>MainWindow</sender>
+   <signal>kinect_connected()</signal>
+   <receiver>videoPlayer</receiver>
+   <slot>start()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>729</x>
+     <y>549</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
+  <signal>kinect_disconnected()</signal>
+  <signal>kinect_connected()</signal>
   <slot>quit()</slot>
   <slot>redraw()</slot>
   <slot>set_angle(int)</slot>
@@ -445,5 +560,7 @@
   <slot>ir_on()</slot>
   <slot>ir_off()</slot>
   <slot>set_ir(int)</slot>
+  <slot>take_capture()</slot>
+  <slot>disconnect_kinect()</slot>
  </slots>
 </ui>

@@ -42,7 +42,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         myfreenectdevice.h myfreenectdevice.cpp
         videoplayer.h videoplayer.cpp videoplayer.ui
         aspectratiopixmaplabel.h aspectratiopixmaplabel.cpp aspectratiopixmaplabel.ui
-        math.h math.cpp
+        kinect_types.h kinect_types.cpp
+        capturelist.h capturelist.cpp capturelist.ui
+        capturepreview.h capturepreview.cpp capturepreview.ui
 
 
 

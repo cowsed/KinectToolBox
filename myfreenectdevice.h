@@ -1,7 +1,7 @@
 #ifndef MYFREENECTDEVICE_H
 #define MYFREENECTDEVICE_H
 
-#include "math.h"
+#include "kinect_types.h"
 #include <functional>
 #include <libfreenect.hpp>
 #include <mutex>

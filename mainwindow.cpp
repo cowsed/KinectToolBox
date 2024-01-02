@@ -20,7 +20,10 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     QObject::connect(this, &MainWindow::new_rgb_data, ui->videoPlayer, &VideoPlayer::set_rgb_data);
     QObject::connect(this, &MainWindow::new_depth_data, ui->videoPlayer, &VideoPlayer::set_depth_data);
 
-    // Setup Statusbar (its a little funny)
+    QObject::connect(ui->captureList, &CaptureList::take_capture, this, &MainWindow::take_capture);
+
+    // Setup Statusbar (qt creator wont let you add widgets graphically)
+
     connection_status_label = new QLabel(this);
     connection_status_label->setTextFormat(Qt::MarkdownText);
     ui->statusbar->addPermanentWidget(connection_status_label);
@@ -35,6 +38,11 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     ui->menubar->addMenu(menu);
 
     try_connect_kinect();
+}
+
+void MainWindow::take_capture()
+{
+    std::cout << "cpature requested" << std::endl;
 }
 
 void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
@@ -55,6 +63,10 @@ void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
 }
 
 void MainWindow::try_connect_kinect(){
+  if (freenect_device != nullptr) {
+      // already connected
+      return;
+  }
   try {
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
@@ -79,6 +91,7 @@ void MainWindow::try_connect_kinect(){
     ui->viewportWidget->set_device(freenect_device);
 
     set_connection_status_ui(KinectConnectionStatus::Connected);
+    emit kinect_connected();
   } catch (std::runtime_error er){
     freenect_device=nullptr;
     set_connection_status_ui(KinectConnectionStatus::Disconnected);
@@ -114,19 +127,33 @@ void MainWindow::set_angle(int angle){
   ui->targetAngleLabel->setText(QString::fromStdString(std::format("Target: {} deg", angle)));
 }
 
+void MainWindow::disconnect_kinect()
+{
+  if (freenect_device == nullptr) {
+    // Wasnt connected anyways
+    return;
+  }
+  thread_should_stop = true;
+  data_check_thread.join();
+
+  freenect_device->stopVideo();
+  freenect_device->stopDepth();
+
+  freenect_ctx.deleteDevice(0);
+  freenect_device = nullptr;
+
+  // std::cout << "rgb samples: " << freenect_device->rgb_samples() << '\n';
+  // std::cout << "depth samples: " << freenect_device->depth_samples() << '\n';
+
+  set_connection_status_ui(KinectConnectionStatus::Disconnected);
+  emit kinect_disconnected();
+}
+
 void MainWindow::quit()
 {
-  thread_should_stop = true;
-  if (freenect_device != nullptr) {
-    freenect_device->stopVideo();
-    freenect_device->stopDepth();
-    std::cout << "rgb samples: " << freenect_device->rgb_samples() << '\n';
-    std::cout << "depth samples: " << freenect_device->depth_samples() << '\n';
-  }
-
+  disconnect_kinect();
   std::cout << "quit\n"
             << std::endl;
-  data_check_thread.join();
   this->close();
 }
 

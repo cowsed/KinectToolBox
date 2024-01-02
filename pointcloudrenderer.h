@@ -18,7 +18,6 @@ public:
   explicit PointCloudRenderer(QWidget *parent = nullptr);
   ~PointCloudRenderer();
   void set_device(MyFreenectDevice *dev);
-  void unset_device();
 
 public slots:
   void set_x_angle(int ang);
@@ -27,6 +26,7 @@ public slots:
   void set_rgb_data(std::span<uint8_t>, VideoType typ);
   void set_depth_data(std::span<uint16_t>);
   void set_point_size(int size);
+  void reset();
 
   protected:
   void initializeGL();

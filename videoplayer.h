@@ -1,7 +1,7 @@
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
-#include "math.h"
+#include "kinect_types.h"
 #include <QPixmap>
 #include <QWidget>
 
@@ -21,7 +21,11 @@ public slots:
     void set_rgb_data(std::span<uint8_t> data, VideoType typ);
     void set_depth_data(std::span<uint16_t> data);
 
+    void start();
+    void reset();
+
 private:
+    bool do_updates;
     Ui::VideoPlayer* ui;
     QImage depth_img;
     QImage rgb_img;
