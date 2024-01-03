@@ -20,6 +20,7 @@ void CaptureList::add_capture(VideoCapture vc)
     ui->captureListWidget->addItem(listItem);
     ui->captureListWidget->setItemWidget(listItem, prev);
     ui->numCaptureLabel->setText(QString::fromStdString(std::format("Captures: {}", captures.size())));
+    connect(prev, &CapturePreview::visibility_changed, this, &CaptureList::show_hide_one);
 }
 void CaptureList::request_capture()
 {
@@ -32,18 +33,29 @@ int CaptureList::next_id()
     return id;
 }
 
-void CaptureList::show_hide()
+PointSupplier CaptureList::points_supplier()
 {
-    // auto selected = this->ui->cap
-    QList<QListWidgetItem*> selected = this->ui->captureListWidget->selectedItems();
+    return [this]() {
+        std::vector<std::span<Point>> pts;
+        for (CapturePreview* cap : captures) {
+            if (cap->is_shown()) {
+                pts.push_back(cap->points());
+            }
+        }
+        return pts;
+    };
+}
+
+void CaptureList::toggle_show_hide()
+{
+    auto list = ui->captureListWidget;
+    QList<QListWidgetItem*> selected = list->selectedItems();
     if (selected.size() == 0) {
         return;
     }
 
     bool first_is_visible = false;
-    auto list = ui->captureListWidget;
-    if (CapturePreview* cap = dynamic_cast<CapturePreview*>(
-            list->itemWidget(selected[selected.size() - 1]))) {
+    if (CapturePreview* cap = dynamic_cast<CapturePreview*>(list->itemWidget(list->currentItem()))) {
         first_is_visible = cap->is_shown();
     } else {
         std::cout << "non capture preview widget in capture list " << std::endl;
@@ -59,7 +71,13 @@ void CaptureList::show_hide()
             continue;
         }
     }
+    emit visible_captures_changed();
 }
+void CaptureList::show_hide_one()
+{
+    emit visible_captures_changed();
+}
+
 CaptureList::~CaptureList()
 {
     delete ui;

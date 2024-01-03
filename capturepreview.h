@@ -21,12 +21,18 @@ public:
     CapturePreview(int id, VideoCapture cap, QWidget* parent = nullptr);
     ~CapturePreview();
     bool is_shown();
+    std::span<Point> points();
+    int get_id();
 public slots:
     void set_shown(bool s);
+    void checkbox_changed();
+signals:
+    void visibility_changed();
 
 private:
     Ui::CapturePreview* ui;
     VideoCapture cap;
+    std::vector<Point> pts;
     int id;
 };
 

@@ -71,4 +71,7 @@
  </customwidgets>
  <resources/>
  <connections/>
+ <slots>
+  <signal>visibility_changed()</signal>
+ </slots>
 </ui>

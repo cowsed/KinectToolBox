@@ -58,6 +58,7 @@
  </connections>
  <slots>
   <signal>take_capture()</signal>
+  <signal>visible_captures_changed()</signal>
   <slot>add_capture(PointCapture)</slot>
   <slot>request_capture()</slot>
   <slot>show_hide()</slot>

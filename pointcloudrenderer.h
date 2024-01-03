@@ -17,16 +17,15 @@ class PointCloudRenderer : public QOpenGLWidget, public QBasicTimer
 public:
   explicit PointCloudRenderer(QWidget *parent = nullptr);
   ~PointCloudRenderer();
-  void set_device(MyFreenectDevice *dev);
+  void set_supplier(PointSupplier ps);
 
-public slots:
+  public slots:
   void set_x_angle(int ang);
   void set_y_angle(int ang);
   void set_zoom(int zoom);
-  void set_rgb_data(std::span<uint8_t>, VideoType typ);
-  void set_depth_data(std::span<uint16_t>);
   void set_point_size(int size);
   void reset();
+  void point_supplier_update();
 
   protected:
   void initializeGL();
@@ -42,17 +41,13 @@ public slots:
   float anglex = 0;
   float zoom = 1;
   float point_size = 1;
-  struct RGBPoint {
-      vec3 pos;
-      uint8_t r, g, b;
-  };
   int last_rx = 0;
   int last_ry = 0;
 
-  std::vector<RGBPoint> points;
+  PointSupplier supplier;
+  PointSupply points;
 
   Ui::PointCloudRenderer *ui;
-  std::optional<MyFreenectDevice*> device;
 };
 
 #endif // POINTCLOUDRENDERER_H

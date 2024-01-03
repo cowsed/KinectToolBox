@@ -9,17 +9,16 @@ PointCloudRenderer::PointCloudRenderer(QWidget* parent)
     : QOpenGLWidget(parent)
     , QBasicTimer()
     , ui(new Ui::PointCloudRenderer)
-    , points(640 * 480, { 0, 0, 0, 0, 0, 0 })
+    , points({})
 {
   ui->setupUi(this);
-  ui->numPointsLabel->setText("Disconnected");
+  ui->numPointsLabel->setText("0 Points");
   QBasicTimer::start(16, Qt::TimerType::PreciseTimer, this);
 }
 
 void PointCloudRenderer::reset()
 {
-  device = std::nullopt;
-  ui->numPointsLabel->setText("Disconnected");
+  ui->numPointsLabel->setText("0 Points");
 }
 void PointCloudRenderer::timerEvent(QTimerEvent *event){
   paintGL();
@@ -54,11 +53,6 @@ void PointCloudRenderer::set_point_size(int size)
 
 void PointCloudRenderer::paintGL()
 {
-  if (!device.has_value()){
-    glClearColor(1.0,0,0,1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    return;
-  }
   bool color = true;
 
 
@@ -72,14 +66,16 @@ void PointCloudRenderer::paintGL()
 
   if (!color){glColor3ub(255, 255, 255);}
 
-  for (int i = 0; i < points.size(); ++i) {
-    auto p = points[i];
+  for (auto some_points : points) {
+      for (int i = 0; i < some_points.size(); ++i) {
+          auto p = some_points[i];
 
-    if (color){
-        glColor3ub(points[i].r, points[i].g, points[i].b);
-    }
+          if (color) {
+              glColor3ub(some_points[i].r, some_points[i].g, some_points[i].b);
+          }
 
-    glVertex3f(p.pos.x, p.pos.y, p.pos.z);
+          glVertex3f(p.pos.x, p.pos.y, p.pos.z);
+      }
   }
 
   glEnd();
@@ -118,44 +114,21 @@ void PointCloudRenderer::resizeGL(int w, int h)
   glMatrixMode(GL_MODELVIEW);
 }
 
-void PointCloudRenderer::set_device(MyFreenectDevice *dev){
-  device = dev;
-}
-
-void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
+void PointCloudRenderer::set_supplier(PointSupplier ps)
 {
-
-  if (!device.has_value()) {
-    return;
-  }
-  for (size_t i = 0; i < points.size(); i++) {
-    if (typ == VideoType::RGB) {
-        points[i].r = data[3 * i];
-        points[i].g = data[3 * i + 1];
-        points[i].b = data[3 * i + 2];
-    } else {
-        points[i].r = data[i];
-        points[i].g = data[i];
-        points[i].b = data[i];
-    }
-  }
-  ui->numPointsLabel->setText(QString::fromStdString(std::format("{} points", points.size())));
+  supplier = ps;
 }
 
-void PointCloudRenderer::set_depth_data(std::span<uint16_t> data)
+void PointCloudRenderer::point_supplier_update()
 {
-
-  if (!device.has_value()) {
-    return;
+  points = supplier();
+  size_t num = 0;
+  for (auto v : points) {
+      num += v.size();
   }
-
-  for (size_t i = 0; i < data.size(); i++) {
-    int x = i % 640;
-    int y = i / 640;
-    uint16_t depth = data[i];
-    points[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
-  }
+  ui->numPointsLabel->setText(QString::fromStdString(std::format("{} Points", num)));
 }
+
 
 void PointCloudRenderer::wheelEvent(QWheelEvent* event)
 {

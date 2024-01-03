@@ -54,6 +54,7 @@ public slots:
 signals:
     void new_rgb_data(std::span<uint8_t> data, VideoType typ);
     void new_depth_data(std::span<uint16_t> data);
+    void new_points();
     void kinect_connected();
     void kinect_disconnected();
     void new_capture(VideoCapture);
@@ -64,6 +65,7 @@ private:
     QApplication& qap;
     Freenect::Freenect freenect_ctx;
     MyFreenectDevice* freenect_device = nullptr;
+    std::vector<Point> live_points;
 
     std::thread data_check_thread;
     std::mutex data_mtx;

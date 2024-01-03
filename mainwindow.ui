@@ -71,6 +71,11 @@
        <attribute name="title">
         <string>Capture</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="PointCloudRenderer" name="captureRenderer"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -111,6 +116,12 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="controlDockWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="mouseTracking">
     <bool>false</bool>
    </property>

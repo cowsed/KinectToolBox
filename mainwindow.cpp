@@ -6,24 +6,20 @@
 #include <iostream>
 #include <span>
 
-MainWindow::MainWindow(QApplication& qap, QWidget* parent)
+MainWindow::MainWindow(QApplication &qap, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , qap(qap)
+    , live_points(640 * 480)
 {
     ui->setupUi(this);
+    ui->viewportWidget->set_supplier(
+        [this]() { return std::vector{std::span(live_points.begin(), live_points.end())}; });
 
-    // connect template slots
-    bool srd_pc = connect(this,
-                          &MainWindow::new_rgb_data,
-                          ui->viewportWidget,
-                          &PointCloudRenderer::set_rgb_data);
-    bool sdd_pc = connect(this,
-                          &MainWindow::new_depth_data,
-                          ui->viewportWidget,
-                          &PointCloudRenderer::set_depth_data);
-    assert(srd_pc);
-    assert(sdd_pc);
+    connect(this,
+            &MainWindow::new_points,
+            ui->viewportWidget,
+            &PointCloudRenderer::point_supplier_update);
 
     bool srd_video = connect(this,
                              &MainWindow::new_rgb_data,
@@ -49,10 +45,18 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     bool showhideok = connect(this->ui->actionShow_Hide,
                               &QAction::triggered,
                               this->ui->captureList,
-                              &CaptureList::show_hide);
+                              &CaptureList::toggle_show_hide);
 
     assert(newcapok);
     assert(showhideok);
+
+    ui->captureRenderer->set_supplier(ui->captureList->points_supplier());
+
+    bool psok = connect(ui->captureList,
+                        &CaptureList::visible_captures_changed,
+                        ui->captureRenderer,
+                        &PointCloudRenderer::point_supplier_update);
+    assert(psok);
 
     // Setup Statusbar (qt creator wont let you add widgets graphically)
     connection_status_label = new QLabel(this);
@@ -103,13 +107,40 @@ void MainWindow::try_connect_kinect(){
   }
   try {
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
+    live_points.resize(640 * 480);
 
     freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
+        // take our copy of data
+        if (freenect_device->video_mode() == VideoType::RGB) {
+            for (size_t i = 0; i < live_points.size(); i++) {
+                live_points[i].r = new_data[3 * i];
+                live_points[i].g = new_data[3 * i + 1];
+                live_points[i].b = new_data[3 * i + 2];
+            }
+        } else {
+            for (size_t i = 0; i < live_points.size(); i++) {
+                live_points[i].r = new_data[i];
+                live_points[i].g = new_data[i];
+                live_points[i].b = new_data[i];
+            }
+        }
+        // alert others
         emit new_rgb_data(new_data, freenect_device->video_mode());
+        emit new_points();
     });
 
-    freenect_device->install_depth_callback(
-        [this](std::span<uint16_t> new_data) { emit new_depth_data(new_data); });
+    freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
+        // take our copy of data
+        for (size_t i = 0; i < new_data.size(); i++) {
+            int x = i % 640;
+            int y = i / 640;
+            uint16_t depth = new_data[i];
+            live_points[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
+        }
+        // alert others
+        emit new_depth_data(new_data);
+        emit new_points();
+    });
 
     freenect_device->startVideo();
     freenect_device->startDepth();
@@ -121,7 +152,6 @@ void MainWindow::try_connect_kinect(){
     led_green();
 
     data_check_thread = std::thread{MainWindow::data_check_thread_runner, this};
-    ui->viewportWidget->set_device(freenect_device);
 
     set_connection_status_ui(KinectConnectionStatus::Connected);
     emit kinect_connected();
@@ -130,25 +160,6 @@ void MainWindow::try_connect_kinect(){
     set_connection_status_ui(KinectConnectionStatus::Disconnected);
   }
 }
-
-void MainWindow::set_ir(int on)
-{
-  if (freenect_device->video_mode() == VideoType::RGB) {
-    freenect_device->set_ir();
-  } else {
-    freenect_device->set_rgb();
-  }
-}
-
-void MainWindow::set_angle(int angle){
-  if (freenect_device == nullptr){
-    return;
-  }
-
-  freenect_device->setTiltDegrees((double)angle);
-  ui->targetAngleLabel->setText(QString::fromStdString(std::format("Target: {} deg", angle)));
-}
-
 void MainWindow::disconnect_kinect()
 {
   if (freenect_device == nullptr) {
@@ -164,10 +175,10 @@ void MainWindow::disconnect_kinect()
   freenect_ctx.deleteDevice(0);
   freenect_device = nullptr;
 
-  // std::cout << "rgb samples: " << freenect_device->rgb_samples() << '\n';
-  // std::cout << "depth samples: " << freenect_device->depth_samples() << '\n';
-
   set_connection_status_ui(KinectConnectionStatus::Disconnected);
+
+  live_points = {};
+  emit new_points();
   emit kinect_disconnected();
 }
 
@@ -241,6 +252,25 @@ void MainWindow::set_led(freenect_led_options opt){
     return;
   }
   freenect_device->setLed(opt);
+}
+
+void MainWindow::set_ir(int on)
+{
+  if (freenect_device->video_mode() == VideoType::RGB) {
+    freenect_device->set_ir();
+  } else {
+    freenect_device->set_rgb();
+  }
+}
+
+void MainWindow::set_angle(int angle)
+{
+  if (freenect_device == nullptr) {
+    return;
+  }
+
+  freenect_device->setTiltDegrees((double) angle);
+  ui->targetAngleLabel->setText(QString::fromStdString(std::format("Target: {} deg", angle)));
 }
 
 MainWindow::~MainWindow()
