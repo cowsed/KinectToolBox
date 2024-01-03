@@ -16,8 +16,8 @@ void CaptureList::add_capture(PointCapture pc)
     CapturePreview* prev = new CapturePreview(id, pc, nullptr);
     captures.push_back(prev);
     auto listItem = new QListWidgetItem();
-    ui->listWidget->addItem(listItem);
-    ui->listWidget->setItemWidget(listItem, prev);
+    ui->captureListWidget->addItem(listItem);
+    ui->captureListWidget->setItemWidget(listItem, prev);
     ui->numCaptureLabel->setText(QString::fromStdString(std::format("Captures: {}", captures.size())));
 }
 void CaptureList::request_capture()

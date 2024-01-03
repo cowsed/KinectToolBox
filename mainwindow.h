@@ -49,8 +49,6 @@ public slots:
     void led_blink_red_yellow();
     void set_led(freenect_led_options opt);
 
-    void ir_on();
-    void ir_off();
     void set_ir(int on);
 
 signals:
@@ -65,7 +63,6 @@ private:
     QApplication& qap;
     Freenect::Freenect freenect_ctx;
     MyFreenectDevice* freenect_device = nullptr;
-    VideoType current_video_type;
 
     std::thread data_check_thread;
     std::mutex data_mtx;

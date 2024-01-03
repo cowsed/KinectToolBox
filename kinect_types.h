@@ -15,6 +15,12 @@ struct Point {
 
 using PointCapture = std::vector<Point>;
 
+struct VideoCapture
+{
+    std::vector<uint8_t> rgb;
+    std::vector<uint16_t> depth;
+};
+
 enum class VideoType {
     RGB,
     IR,

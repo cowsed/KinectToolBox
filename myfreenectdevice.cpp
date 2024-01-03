@@ -1,17 +1,14 @@
 #include "myfreenectdevice.h"
 #include <iostream>
 
-MyFreenectDevice::MyFreenectDevice(freenect_context* _ctx, int _index)
+MyFreenectDevice::MyFreenectDevice(freenect_context *_ctx, int _index)
     : Freenect::FreenectDevice(_ctx, _index)
-    , m_buffer_video(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM,
-          FREENECT_VIDEO_RGB)
-                         .bytes)
-    , m_buffer_depth(freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM,
-                         FREENECT_DEPTH_REGISTERED)
-                         .bytes
-          / 2)
+    , m_buffer_video(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes)
+    , m_buffer_depth(
+          freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_REGISTERED).bytes / 2)
     , m_new_rgb_frame(false)
     , m_new_depth_frame(false)
+    , current_video_type(VideoType::RGB)
 {
     setDepthFormat(FREENECT_DEPTH_REGISTERED);
 }
@@ -55,4 +52,39 @@ uint64_t MyFreenectDevice::rgb_samples()
 uint64_t MyFreenectDevice::depth_samples()
 {
   return depth_count;
+}
+
+VideoType MyFreenectDevice::video_mode()
+{
+  return current_video_type;
+}
+void MyFreenectDevice::set_ir()
+{
+  setVideoFormat(FREENECT_VIDEO_IR_8BIT);
+  current_video_type = VideoType::IR;
+}
+void MyFreenectDevice::set_rgb()
+{
+  setVideoFormat(FREENECT_VIDEO_RGB);
+  current_video_type = VideoType::RGB;
+}
+
+VideoCapture MyFreenectDevice::take_capture()
+{
+  std::vector<uint8_t> rgb;
+  rgb.reserve(640 * 480 * 3);
+  std::vector<uint16_t> depth;
+  depth.reserve(640 * 480);
+
+  std::copy(m_buffer_depth.begin(), m_buffer_depth.end(), depth.begin());
+
+  if (current_video_type == VideoType::RGB) {
+      std::copy(m_buffer_video.begin(), m_buffer_video.end(), rgb.begin());
+  } else {
+      for (int i = 0; i < 640 * 480; i++) {
+          rgb[3 * i] = m_buffer_video[i];
+          rgb[3 * i + 1] = m_buffer_video[i];
+          rgb[3 * i + 2] = m_buffer_video[i];
+      }
+  }
 }

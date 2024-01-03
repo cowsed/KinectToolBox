@@ -31,12 +31,19 @@ public:
             .z = depth // Z = d
         };
     }
+    VideoType video_mode();
+    void set_ir();
+    void set_rgb();
+
+    VideoCapture take_capture();
 
 private:
     // Do not call directly, even in child
     // Callback for libfreenect
     void VideoCallback(void* _rgb, uint32_t timestamp);
     void DepthCallback(void* _depth, uint32_t timestamp);
+
+    VideoType current_video_type;
 
     // rgb picture
     std::mutex m_rgb_mutex;

@@ -20,6 +20,9 @@ public:
     explicit CapturePreview(QWidget* parent = nullptr);
     CapturePreview(int id, PointCapture cap, QWidget* parent = nullptr);
     ~CapturePreview();
+    bool is_shown();
+public slots:
+    void set_shown(bool s);
 
 private:
     Ui::CapturePreview* ui;

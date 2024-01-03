@@ -10,7 +10,6 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , qap(qap)
-    , current_video_type(VideoType::RGB)
 {
     ui->setupUi(this);
 
@@ -90,8 +89,9 @@ void MainWindow::try_connect_kinect(){
   try {
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
-    freenect_device->install_color_callback(
-        [this](std::span<uint8_t> new_data) { emit new_rgb_data(new_data, current_video_type); });
+    freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
+        emit new_rgb_data(new_data, freenect_device->video_mode());
+    });
 
     freenect_device->install_depth_callback(
         [this](std::span<uint16_t> new_data) { emit new_depth_data(new_data); });
@@ -118,22 +118,11 @@ void MainWindow::try_connect_kinect(){
 
 void MainWindow::set_ir(int on)
 {
-  if (on) {
-    ir_on();
+  if (freenect_device->video_mode() == VideoType::RGB) {
+    freenect_device->set_ir();
   } else {
-    ir_off();
+    freenect_device->set_rgb();
   }
-}
-
-void MainWindow::ir_on()
-{
-  freenect_device->setVideoFormat(FREENECT_VIDEO_IR_8BIT);
-  current_video_type = VideoType::IR;
-}
-void MainWindow::ir_off()
-{
-  freenect_device->setVideoFormat(FREENECT_VIDEO_RGB);
-  current_video_type = VideoType::RGB;
 }
 
 void MainWindow::set_angle(int angle){
