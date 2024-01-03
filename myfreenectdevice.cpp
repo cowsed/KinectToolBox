@@ -71,10 +71,8 @@ void MyFreenectDevice::set_rgb()
 
 VideoCapture MyFreenectDevice::take_capture()
 {
-  std::vector<uint8_t> rgb;
-  rgb.reserve(640 * 480 * 3);
-  std::vector<uint16_t> depth;
-  depth.reserve(640 * 480);
+  std::vector<uint8_t> rgb(640 * 480 * 3);
+  std::vector<uint16_t> depth(640 * 480);
 
   std::copy(m_buffer_depth.begin(), m_buffer_depth.end(), depth.begin());
 
@@ -87,4 +85,5 @@ VideoCapture MyFreenectDevice::take_capture()
           rgb[3 * i + 2] = m_buffer_video[i];
       }
   }
+  return {.rgb = rgb, .depth = depth};
 }

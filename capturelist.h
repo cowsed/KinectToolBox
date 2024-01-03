@@ -22,8 +22,9 @@ signals:
     void take_capture();
 
 public slots:
-    void add_capture(PointCapture pc);
+    void add_capture(VideoCapture pc);
     void request_capture();
+    void show_hide();
 
 private:
     Ui::CaptureList* ui;

@@ -29,7 +29,11 @@
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="captureListWidget"/>
+    <widget class="QListWidget" name="captureListWidget">
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
@@ -56,5 +60,6 @@
   <signal>take_capture()</signal>
   <slot>add_capture(PointCapture)</slot>
   <slot>request_capture()</slot>
+  <slot>show_hide()</slot>
  </slots>
 </ui>

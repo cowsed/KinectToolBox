@@ -56,6 +56,7 @@ signals:
     void new_depth_data(std::span<uint16_t> data);
     void kinect_connected();
     void kinect_disconnected();
+    void new_capture(VideoCapture);
 
 private:
     static void data_check_thread_runner(MainWindow* win);

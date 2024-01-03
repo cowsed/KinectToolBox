@@ -99,8 +99,15 @@
     <addaction name="actionReconnect"/>
     <addaction name="actionDisconnect"/>
    </widget>
+   <widget class="QMenu" name="menuCapture">
+    <property name="title">
+     <string>Capture</string>
+    </property>
+    <addaction name="actionShow_Hide"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuDevice"/>
+   <addaction name="menuCapture"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="controlDockWidget">
@@ -301,6 +308,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionShow_Hide">
+   <property name="text">
+    <string>Show/Hide</string>
+   </property>
+   <property name="shortcut">
+    <string>H</string>
    </property>
   </action>
  </widget>
@@ -547,6 +562,7 @@
  <slots>
   <signal>kinect_disconnected()</signal>
   <signal>kinect_connected()</signal>
+  <signal>new_capture(VideoCapture)</signal>
   <slot>quit()</slot>
   <slot>redraw()</slot>
   <slot>set_angle(int)</slot>

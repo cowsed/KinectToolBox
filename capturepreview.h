@@ -18,7 +18,7 @@ public:
     };
 
     explicit CapturePreview(QWidget* parent = nullptr);
-    CapturePreview(int id, PointCapture cap, QWidget* parent = nullptr);
+    CapturePreview(int id, VideoCapture cap, QWidget* parent = nullptr);
     ~CapturePreview();
     bool is_shown();
 public slots:
@@ -26,7 +26,7 @@ public slots:
 
 private:
     Ui::CapturePreview* ui;
-    PointCapture cap;
+    VideoCapture cap;
     int id;
 };
 

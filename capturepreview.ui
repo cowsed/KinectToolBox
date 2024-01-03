@@ -29,13 +29,19 @@
    </item>
    <item>
     <widget class="AspectRatioPixmapLabel" name="imagePreview">
+     <property name="minimumSize">
+      <size>
+       <width>80</width>
+       <height>60</height>
+      </size>
+     </property>
      <property name="text">
       <string>imagePreview</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="idLabel">
      <property name="text">
       <string>ID</string>
      </property>

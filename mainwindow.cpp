@@ -42,6 +42,18 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
                          &MainWindow::take_capture);
     assert(tc_ok);
 
+    bool newcapok = connect(this,
+                            &MainWindow::new_capture,
+                            ui->captureList,
+                            &CaptureList::add_capture);
+    bool showhideok = connect(this->ui->actionShow_Hide,
+                              &QAction::triggered,
+                              this->ui->captureList,
+                              &CaptureList::show_hide);
+
+    assert(newcapok);
+    assert(showhideok);
+
     // Setup Statusbar (qt creator wont let you add widgets graphically)
     connection_status_label = new QLabel(this);
     connection_status_label->setTextFormat(Qt::MarkdownText);
@@ -61,7 +73,10 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
 
 void MainWindow::take_capture()
 {
-    std::cout << "cpature requested" << std::endl;
+    if (freenect_device == nullptr) {
+        return;
+    }
+    emit new_capture(freenect_device->take_capture());
 }
 
 void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
