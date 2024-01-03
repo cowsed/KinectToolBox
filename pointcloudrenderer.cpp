@@ -124,6 +124,7 @@ void PointCloudRenderer::set_device(MyFreenectDevice *dev){
 
 void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
 {
+
   if (!device.has_value()) {
     return;
   }
@@ -143,9 +144,11 @@ void PointCloudRenderer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
 
 void PointCloudRenderer::set_depth_data(std::span<uint16_t> data)
 {
+
   if (!device.has_value()) {
     return;
   }
+
   for (size_t i = 0; i < data.size(); i++) {
     int x = i % 640;
     int y = i / 640;

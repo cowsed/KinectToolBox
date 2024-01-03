@@ -13,17 +13,37 @@ MainWindow::MainWindow(QApplication& qap, QWidget* parent)
     , current_video_type(VideoType::RGB)
 {
     ui->setupUi(this);
+
     // connect template slots
-    QObject::connect(this, &MainWindow::new_rgb_data, ui->viewportWidget, &PointCloudRenderer::set_rgb_data);
-    QObject::connect(this, &MainWindow::new_depth_data, ui->viewportWidget, &PointCloudRenderer::set_depth_data);
+    bool srd_pc = connect(this,
+                          &MainWindow::new_rgb_data,
+                          ui->viewportWidget,
+                          &PointCloudRenderer::set_rgb_data);
+    bool sdd_pc = connect(this,
+                          &MainWindow::new_depth_data,
+                          ui->viewportWidget,
+                          &PointCloudRenderer::set_depth_data);
+    assert(srd_pc);
+    assert(sdd_pc);
 
-    QObject::connect(this, &MainWindow::new_rgb_data, ui->videoPlayer, &VideoPlayer::set_rgb_data);
-    QObject::connect(this, &MainWindow::new_depth_data, ui->videoPlayer, &VideoPlayer::set_depth_data);
+    bool srd_video = connect(this,
+                             &MainWindow::new_rgb_data,
+                             ui->videoPlayer,
+                             &VideoPlayer::set_rgb_data);
+    bool sdd_video = connect(this,
+                             &MainWindow::new_depth_data,
+                             ui->videoPlayer,
+                             &VideoPlayer::set_depth_data);
+    assert(srd_video);
+    assert(sdd_video);
 
-    QObject::connect(ui->captureList, &CaptureList::take_capture, this, &MainWindow::take_capture);
+    bool tc_ok = connect(ui->captureList,
+                         &CaptureList::take_capture,
+                         this,
+                         &MainWindow::take_capture);
+    assert(tc_ok);
 
     // Setup Statusbar (qt creator wont let you add widgets graphically)
-
     connection_status_label = new QLabel(this);
     connection_status_label->setTextFormat(Qt::MarkdownText);
     ui->statusbar->addPermanentWidget(connection_status_label);
@@ -70,13 +90,11 @@ void MainWindow::try_connect_kinect(){
   try {
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
-    freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
-        emit new_rgb_data(new_data, current_video_type);
-    });
+    freenect_device->install_color_callback(
+        [this](std::span<uint8_t> new_data) { emit new_rgb_data(new_data, current_video_type); });
 
-    freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
-        emit new_depth_data(new_data);
-    });
+    freenect_device->install_depth_callback(
+        [this](std::span<uint16_t> new_data) { emit new_depth_data(new_data); });
 
     freenect_device->startVideo();
     freenect_device->startDepth();

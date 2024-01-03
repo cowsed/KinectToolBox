@@ -17,7 +17,7 @@ set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets OpenGLWidgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
 
@@ -31,6 +31,12 @@ set(PROJECT_SOURCES
         pointcloudrenderer.cpp
         pointcloudrenderer.h
         pointcloudrenderer.ui
+        myfreenectdevice.h myfreenectdevice.cpp
+        videoplayer.h videoplayer.cpp videoplayer.ui
+        aspectratiopixmaplabel.h aspectratiopixmaplabel.cpp aspectratiopixmaplabel.ui
+        kinect_types.h kinect_types.cpp
+        capturelist.h capturelist.cpp capturelist.ui
+        capturepreview.h capturepreview.cpp capturepreview.ui
 )
 
 
@@ -39,16 +45,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(KinectToolBox
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        pointcloudrenderer.h pointcloudrenderer.cpp pointcloudrenderer.ui
-        myfreenectdevice.h myfreenectdevice.cpp
-        videoplayer.h videoplayer.cpp videoplayer.ui
-        aspectratiopixmaplabel.h aspectratiopixmaplabel.cpp aspectratiopixmaplabel.ui
-        kinect_types.h kinect_types.cpp
-        capturelist.h capturelist.cpp capturelist.ui
-        capturepreview.h capturepreview.cpp capturepreview.ui
-
-
-
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET KinectToolBox APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -75,11 +71,8 @@ target_include_directories(KinectToolBox PUBLIC "/usr/include/libfreenect")
 target_include_directories(KinectToolBox PUBLIC "/usr/include/libusb-1.0")
 
 target_link_libraries(KinectToolBox PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-
-
 target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
-target_link_directories(KinectToolBox PUBLIC /usr/lib/libfreenect)
 target_link_libraries(KinectToolBox PRIVATE freenect)
 
 if (${ADDRESS_SANITIZE})

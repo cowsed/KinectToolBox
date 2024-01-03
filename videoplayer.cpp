@@ -67,7 +67,6 @@ void VideoPlayer::set_depth_data(std::span<uint16_t> data)
         }
         ct.append(qRgb(v, v, v));
     }
-    heatmap.setColorTable(ct);
     ui->depthLabel->setPixmap(QPixmap::fromImage(heatmap));
 }
 
