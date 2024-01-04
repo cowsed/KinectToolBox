@@ -29,28 +29,32 @@ public:
 
 
   public slots:
-  void take_capture();
+      void quit();
 
-  void try_connect_kinect();
-  void disconnect_kinect();
-  /**
+      void take_capture();
+
+      void try_connect_kinect();
+      void disconnect_kinect();
+      /**
      * @brief set_connection_status_ui
      * @param stat status of the connection, changes the representation in the status bar
      */
-  void set_connection_status_ui(KinectConnectionStatus stat);
+      void set_connection_status_ui(KinectConnectionStatus stat);
 
-  void set_angle(int angle);
-  void quit();
+      void set_angle(int angle);
 
-  void led_off();
-  void led_green();
-  void led_yellow();
-  void led_red();
-  void led_blink_green();
-  void led_blink_red_yellow();
-  void set_led(freenect_led_options opt);
+      /*
+   * Set LED States  
+   */
+      void led_off();
+      void led_green();
+      void led_yellow();
+      void led_red();
+      void led_blink_green();
+      void led_blink_red_yellow();
+      void set_led(freenect_led_options opt);
 
-  void set_ir(int on);
+      void set_ir(int on);
 
   signals:
   void new_rgb_data(std::span<uint8_t> data, VideoType typ);

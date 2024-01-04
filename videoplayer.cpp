@@ -59,25 +59,24 @@ void VideoPlayer::set_depth_data(std::span<uint16_t> data)
         return;
     }
 
-    depth_img = QImage((uchar*)data.data(), frame_size.width(), frame_size.height(), QImage::Format_Grayscale16);
-    QImage heatmap = depth_img.convertToFormat(QImage::Format_Indexed8);
+    const auto min_mm = 300;
+    const auto max_mm = 3500;
+    const auto divider = (max_mm - min_mm) / 255;
+    auto remap = [](uint16_t mm) { return (mm - min_mm) / divider; };
 
-    QList<QRgb> ct = {};
-    for (int i = 0; i < 255; i++) {
-        auto f = 8;
-        auto v = f * i;
-        if (v > 255) {
-            v = 255;
-        } else if (v < 0) {
-            v = 0;
-        }
-        ct.append(qRgb(v, v, v));
+    remapped_depth.resize(640 * 480);
+    for (size_t i = 0; i < data.size(); i++) {
+        remapped_depth[i] = remap(data[i]);
     }
-    ui->depthLabel->setPixmap(QPixmap::fromImage(heatmap));
+
+    depth_img = QImage((uchar*) remapped_depth.data(),
+                       frame_size.width(),
+                       frame_size.height(),
+                       QImage::Format_Grayscale8);
+    ui->depthLabel->setPixmap(QPixmap::fromImage(depth_img));
 }
 
 VideoPlayer::~VideoPlayer()
 {
-    // delete ui->graphicsView->scene();
     delete ui;
 }

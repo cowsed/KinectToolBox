@@ -28,6 +28,7 @@ private:
     bool do_updates;
     Ui::VideoPlayer* ui;
     QImage depth_img;
+    std::vector<uint8_t> remapped_depth;
     QImage rgb_img;
 };
 
