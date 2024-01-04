@@ -1,9 +1,10 @@
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
-#include "kinect_types.h"
 #include <QPixmap>
 #include <QWidget>
+#include "kinect_types.h"
+#include <future>
 
 namespace Ui {
 class VideoPlayer;

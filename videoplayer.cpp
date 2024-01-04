@@ -10,8 +10,14 @@ uint16_t default_depth_image_data[640 * 480] = { 0xFFFF };
 VideoPlayer::VideoPlayer(QWidget* parent)
     : QWidget(parent)
     , ui(new Ui::VideoPlayer)
-    , depth_img((uchar*)default_depth_image_data, frame_size.width(), frame_size.height(), QImage::Format_Grayscale16)
-    , rgb_img((uchar*)default_rgb_image_data, frame_size.width(), frame_size.height(), QImage::Format_RGB888)
+    , depth_img((uchar*) default_depth_image_data,
+                frame_size.width(),
+                frame_size.height(),
+                QImage::Format_Grayscale16)
+    , rgb_img((uchar*) default_rgb_image_data,
+              frame_size.width(),
+              frame_size.height(),
+              QImage::Format_RGB888)
     , do_updates(true)
 {
     ui->setupUi(this);

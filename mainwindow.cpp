@@ -1,7 +1,7 @@
 #include "mainwindow.h"
+#include <QStyle>
 #include "./ui_mainwindow.h"
 #include "videoplayer.h"
-#include <QStyle>
 #include <format>
 #include <iostream>
 #include <span>
@@ -10,11 +10,12 @@ MainWindow::MainWindow(QApplication &qap, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , qap(qap)
-    , live_points(640 * 480)
+    , live_points({})
 {
     ui->setupUi(this);
-    ui->viewportWidget->set_supplier(
-        [this]() { return std::vector{std::span(live_points.begin(), live_points.end())}; });
+    ui->viewportWidget->set_supplier([this]() -> std::vector<std::span<Point>> {
+        return std::vector{std::span(live_points.begin(), live_points.end())};
+    });
 
     connect(this,
             &MainWindow::new_points,
@@ -97,7 +98,46 @@ void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
       connection_status_label->setText("Connection Unknown");
       connection_status_label->setStyleSheet("color: yellow");
       break;
+    }
+}
+
+std::vector<Point> update_points_rgb(std::vector<Point> old_pts,
+                                     std::span<uint8_t> new_data,
+                                     VideoType video_mode)
+{
+  if (old_pts.size() != 640 * 480) {
+      old_pts.resize(640 * 480);
   }
+  // take our copy of data
+  if (video_mode == VideoType::RGB) {
+      for (size_t i = 0; i < old_pts.size(); i++) {
+          old_pts[i].r = new_data[3 * i];
+          old_pts[i].g = new_data[3 * i + 1];
+          old_pts[i].b = new_data[3 * i + 2];
+      }
+  } else {
+      for (size_t i = 0; i < old_pts.size(); i++) {
+          old_pts[i].r = new_data[i];
+          old_pts[i].g = new_data[i];
+          old_pts[i].b = new_data[i];
+      }
+  }
+  return old_pts;
+}
+std::vector<Point> update_points_depth(std::vector<Point> old_pts, std::span<uint16_t> new_data)
+{
+  if (old_pts.size() != 640 * 480) {
+      old_pts.resize(640 * 480);
+  }
+
+  // take our copy of data
+  for (size_t i = 0; i < new_data.size(); i++) {
+      int x = i % 640;
+      int y = i / 640;
+      uint16_t depth = new_data[i];
+      old_pts[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
+  }
+  return old_pts;
 }
 
 void MainWindow::try_connect_kinect(){
@@ -107,36 +147,22 @@ void MainWindow::try_connect_kinect(){
   }
   try {
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
-    live_points.resize(640 * 480);
 
     freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
-        // take our copy of data
-        if (freenect_device->video_mode() == VideoType::RGB) {
-            for (size_t i = 0; i < live_points.size(); i++) {
-                live_points[i].r = new_data[3 * i];
-                live_points[i].g = new_data[3 * i + 1];
-                live_points[i].b = new_data[3 * i + 2];
-            }
-        } else {
-            for (size_t i = 0; i < live_points.size(); i++) {
-                live_points[i].r = new_data[i];
-                live_points[i].g = new_data[i];
-                live_points[i].b = new_data[i];
-            }
-        }
+        live_points = update_points_rgb(live_points, new_data, freenect_device->video_mode());
+
         // alert others
         emit new_rgb_data(new_data, freenect_device->video_mode());
         emit new_points();
     });
 
     freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
-        // take our copy of data
-        for (size_t i = 0; i < new_data.size(); i++) {
-            int x = i % 640;
-            int y = i / 640;
-            uint16_t depth = new_data[i];
-            live_points[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
-        }
+        // live_points.set_work([this, new_data]() {
+        // std::cout << "work setted" << std::endl;
+        // return update_points_depth(live_points.get(), new_data);
+        // });
+        live_points = update_points_depth(live_points, new_data);
+
         // alert others
         emit new_depth_data(new_data);
         emit new_points();
@@ -177,7 +203,7 @@ void MainWindow::disconnect_kinect()
 
   set_connection_status_ui(KinectConnectionStatus::Disconnected);
 
-  live_points = {};
+  // live_points = {};
   emit new_points();
   emit kinect_disconnected();
 }
@@ -194,7 +220,7 @@ std::string string_motion_code(freenect_tilt_status_code code){
   std::string s = "Moving";
   if (code == freenect_tilt_status_code::TILT_STATUS_LIMIT){
     s = "At Limit";
-  } else if (code == freenect_tilt_status_code::TILT_STATUS_STOPPED){
+  } else if (code == freenect_tilt_status_code::TILT_STATUS_STOPPED) {
     s = "Stopped";
   }
   return s;
