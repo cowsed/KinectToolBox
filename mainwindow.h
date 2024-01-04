@@ -27,6 +27,7 @@ public:
   MainWindow(QApplication &qap, QWidget *parent = nullptr);
   ~MainWindow();
 
+  void save_to(std::string path);
 
   public slots:
       void quit();
@@ -42,6 +43,7 @@ public:
       void set_connection_status_ui(KinectConnectionStatus stat);
 
       void set_angle(int angle);
+      void save();
 
       /*
    * Set LED States  
@@ -65,19 +67,21 @@ public:
   void new_capture(VideoCapture);
 
   private:
-  static void data_check_thread_runner(MainWindow* win);
-  Ui::MainWindow* ui;
-  QApplication& qap;
-  Freenect::Freenect freenect_ctx;
-  MyFreenectDevice* freenect_device = nullptr;
-  std::vector<Point> live_points;
+      std::optional<std::string> project_path;
 
-  std::thread data_check_thread;
-  std::mutex data_mtx;
-  std::optional<Freenect::FreenectTiltState> tilt_state;
-  bool thread_should_stop = false;
+      static void data_check_thread_runner(MainWindow* win);
+      Ui::MainWindow* ui;
+      QApplication& qap;
+      Freenect::Freenect freenect_ctx;
+      MyFreenectDevice* freenect_device = nullptr;
+      std::vector<Point> live_points;
 
-  // needed here cuz status bar widgets are weird
-  QLabel* connection_status_label;
+      std::thread data_check_thread;
+      std::mutex data_mtx;
+      std::optional<Freenect::FreenectTiltState> tilt_state;
+      bool thread_should_stop = false;
+
+      // needed here cuz status bar widgets are weird
+      QLabel* connection_status_label;
 };
 #endif // MAINWINDOW_H
