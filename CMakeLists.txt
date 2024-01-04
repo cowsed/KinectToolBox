@@ -22,10 +22,10 @@ set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 
 message(QT_VERSION_MAJOR="${QT_VERSION_MAJOR}")
 
@@ -57,7 +57,6 @@ set(PROJECT_SOURCES
         capturepreview.h capturepreview.cpp capturepreview.ui
 )
 
-message(QT_VERSION_MAJOR="${QT_VERSION_MAJOR}")
 
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -93,8 +92,8 @@ target_include_directories(KinectToolBox PUBLIC ${PCL_INCLUDE_DIRS})
 
 target_link_directories(KinectToolBox PRIVATE ${PCL_LIBRARY_DIRS})
 
-target_link_libraries(KinectToolBox PRIVATE Qt5::Widgets)
-target_link_libraries(KinectToolBox PRIVATE Qt5::OpenGLWidgets)
+target_link_libraries(KinectToolBox PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_libraries(KinectToolBox PRIVATE freenect)
 target_link_libraries(KinectToolBox PRIVATE ${PCL_LIBRARIES})
