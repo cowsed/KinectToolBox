@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(KinectToolBox VERSION 0.1 LANGUAGES CXX)
+project(KinectToolBox VERSION 0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +8,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+# set(QT_VERSION_MAJOR 6)
+
+add_compile_definitions(QT_FATAL_WARNINGS=1)
+
+message(QT_VERSION_MAJOR="${QT_VERSION_MAJOR}")
 
 set(ADDRESS_SANITIZE OFF)
 
@@ -17,10 +22,23 @@ set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 
+message(QT_VERSION_MAJOR="${QT_VERSION_MAJOR}")
+
+find_package(MPI REQUIRED)
+
+message(MPI_C_COMPILER="${MPI_C_COMPILER}")
+message(MPI_CXX_COMPILER="${MPI_CXX_COMPILER}")
+message(MPI_C_FOUND="${MPI_C_FOUND}")
+message(MPI_FOUND="${MPI_FOUND}")
+message(MPI_HOME="${MPI_HOME}")
+
+
+find_package(PCL 1.3 REQUIRED COMPONENTS io common)
 
 
 set(PROJECT_SOURCES
@@ -39,6 +57,7 @@ set(PROJECT_SOURCES
         capturepreview.h capturepreview.cpp capturepreview.ui
 )
 
+message(QT_VERSION_MAJOR="${QT_VERSION_MAJOR}")
 
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -69,11 +88,18 @@ endif()
 target_include_directories(KinectToolBox PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(KinectToolBox PUBLIC "/usr/include/libfreenect")
 target_include_directories(KinectToolBox PUBLIC "/usr/include/libusb-1.0")
+target_include_directories(KinectToolBox PUBLIC ${PCL_INCLUDE_DIRS})
 
-target_link_libraries(KinectToolBox PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
+
+target_link_directories(KinectToolBox PRIVATE ${PCL_LIBRARY_DIRS})
+
+target_link_libraries(KinectToolBox PRIVATE Qt6::Widgets)
+target_link_libraries(KinectToolBox PRIVATE Qt6::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_libraries(KinectToolBox PRIVATE freenect)
+target_link_libraries(KinectToolBox PRIVATE ${PCL_LIBRARIES})
+
+add_definitions(${PCL_DEFINITIONS})
 
 if (${ADDRESS_SANITIZE})
     target_link_options(KinectToolBox  PUBLIC -fsanitize=address)
