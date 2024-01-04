@@ -8,11 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-# set(QT_VERSION_MAJOR 6)
-
-add_compile_definitions(QT_FATAL_WARNINGS=1)
-
-message(QT_VERSION_MAJOR="${QT_VERSION_MAJOR}")
 
 set(ADDRESS_SANITIZE OFF)
 
@@ -20,25 +15,16 @@ add_compile_definitions(QT_FATAL_WARNINGS=1)
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
+set(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
+
 find_package(OpenGL REQUIRED)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 
-message(QT_VERSION_MAJOR="${QT_VERSION_MAJOR}")
-
-find_package(MPI REQUIRED)
-
-message(MPI_C_COMPILER="${MPI_C_COMPILER}")
-message(MPI_CXX_COMPILER="${MPI_CXX_COMPILER}")
-message(MPI_C_FOUND="${MPI_C_FOUND}")
-message(MPI_FOUND="${MPI_FOUND}")
-message(MPI_HOME="${MPI_HOME}")
-
-
-find_package(PCL 1.3 REQUIRED COMPONENTS io common)
+# find_package(PCL 1.3 REQUIRED COMPONENTS io)
+message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
 
 
 set(PROJECT_SOURCES
@@ -49,13 +35,16 @@ set(PROJECT_SOURCES
         pointcloudrenderer.cpp
         pointcloudrenderer.h
         pointcloudrenderer.ui
+        pointcloudrenderer.h pointcloudrenderer.cpp pointcloudrenderer.ui
         myfreenectdevice.h myfreenectdevice.cpp
         videoplayer.h videoplayer.cpp videoplayer.ui
         aspectratiopixmaplabel.h aspectratiopixmaplabel.cpp aspectratiopixmaplabel.ui
         kinect_types.h kinect_types.cpp
         capturelist.h capturelist.cpp capturelist.ui
         capturepreview.h capturepreview.cpp capturepreview.ui
+
 )
+message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
 
 
 
@@ -83,22 +72,26 @@ else()
 endif()
 
 
+message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
 
-target_include_directories(KinectToolBox PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(KinectToolBox PUBLIC "/usr/include/libfreenect")
-target_include_directories(KinectToolBox PUBLIC "/usr/include/libusb-1.0")
-target_include_directories(KinectToolBox PUBLIC ${PCL_INCLUDE_DIRS})
+target_include_directories(KinectToolBox PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(KinectToolBox PRIVATE "/usr/include/libfreenect")
+target_include_directories(KinectToolBox PRIVATE "/usr/include/libusb-1.0")
+target_include_directories(KinectToolBox PRIVATE /usr/include/pcl-1.14 /usr/include/eigen3)
 
+target_link_directories(KinectToolBox PRIVATE /usr/lib/libfreenect)
+target_link_libraries(KinectToolBox PRIVATE pcl_io pcl_common)
 
-target_link_directories(KinectToolBox PRIVATE ${PCL_LIBRARY_DIRS})
-
-target_link_libraries(KinectToolBox PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(KinectToolBox PRIVATE Qt::Widgets)
 target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_libraries(KinectToolBox PRIVATE freenect)
-target_link_libraries(KinectToolBox PRIVATE ${PCL_LIBRARIES})
+
+message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
 
 add_definitions(${PCL_DEFINITIONS})
+message(PCLDEFINITIONS="${PCL_DEFINITIONS}")
+message(PCLLIBS="${PCL_LIBRARIES}")
 
 if (${ADDRESS_SANITIZE})
     target_link_options(KinectToolBox  PUBLIC -fsanitize=address)
@@ -111,6 +104,7 @@ endif()
 if(${QT_VERSION} VERSION_LESS 6.1.0)
   set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.KinectToolBox)
 endif()
+
 set_target_properties(KinectToolBox PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
@@ -129,3 +123,4 @@ install(TARGETS KinectToolBox
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(KinectToolBox)
 endif()
+message(QT_MAJOR_VERSIONLAT="${QT_MAJOR_VERSION}")
