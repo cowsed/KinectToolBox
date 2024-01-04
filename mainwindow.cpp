@@ -76,6 +76,13 @@ MainWindow::MainWindow(QApplication &qap, QWidget *parent)
     try_connect_kinect();
 }
 
+void MainWindow::save_to(std::string path) {}
+void MainWindow::save()
+{
+    if (project_path.has_value()) {
+        save_to(project_path.value());
+    }
+}
 void MainWindow::take_capture()
 {
     if (freenect_device == nullptr) {

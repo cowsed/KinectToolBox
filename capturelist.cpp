@@ -12,15 +12,28 @@ CaptureList::CaptureList(QWidget* parent)
 
 void CaptureList::add_capture(VideoCapture vc)
 {
+    auto time = QDateTime::currentDateTime();
     int id = next_id();
-    CapturePreview* prev = new CapturePreview(id, vc, nullptr);
+
+    CapturePreview* prev = new CapturePreview(id, vc, time, nullptr);
+
     captures.push_back(prev);
     auto listItem = new QListWidgetItem();
     listItem->setSizeHint(prev->sizeHint());
     ui->captureListWidget->addItem(listItem);
+    QString tt = "Capture: ";
+    tt += time.toString();
+
+    listItem->setToolTip(tt);
     ui->captureListWidget->setItemWidget(listItem, prev);
-    ui->numCaptureLabel->setText(QString::fromStdString(std::format("Captures: {}", captures.size())));
+
+    ui->numCaptureLabel->setText(
+        QString::fromStdString(std::format("Captures: {}", captures.size())));
     connect(prev, &CapturePreview::visibility_changed, this, &CaptureList::show_hide_one);
+
+    auto fname = prev->get_time().toString();
+    fname.replace(' ', '_');
+    prev->points_to_file(std::format("capture_{}.pcd", fname.toStdString()));
 }
 void CaptureList::request_capture()
 {

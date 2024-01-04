@@ -1,11 +1,12 @@
 #ifndef CAPTURELIST_H
 #define CAPTURELIST_H
 
+#include <QJsonObject>
+#include <QWidget>
 #include "capturepreview.h"
 #include "kinect_types.h"
-#include "qlistview.h"
-#include <QWidget>
 
+#include <QDataStream>
 namespace Ui {
 class CaptureList;
 }
