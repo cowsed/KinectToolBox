@@ -14,19 +14,65 @@ CapturePreview::CapturePreview(QWidget* parent)
     connect(ui->checkBox, &QCheckBox::clicked, this, &CapturePreview::checkbox_changed);
 }
 
-CapturePreview::CapturePreview(
-    int id, VideoCapture cap, PointCloud::Ptr pc, QDateTime time, QWidget *parent)
+static auto get_color(int i, std::span<uint8_t> rgb, VideoType vid_mode)
+    -> std::tuple<uint8_t, uint8_t, uint8_t>
+{
+    if (vid_mode == VideoType::RGB) {
+        auto r = rgb[3 * i];
+        auto g = rgb[3 * i + 1];
+        auto b = rgb[3 * i + 2];
+        return {r, g, b};
+    } else {
+        auto g = rgb[i];
+        return {g, g, g};
+    }
+}
+
+CapturePreview::CapturePreview(int id,
+                               VideoCapture video_capture,
+                               VideoType video_mode,
+                               PointFilter::Filter filt,
+                               QDateTime time,
+                               QWidget *parent)
     : CapturePreview(parent)
 {
     this->id = id;
-    this->cap = cap;
+    this->cap = video_capture;
     this->time = time;
 
-    this->ui->idLabel->setText(QString::fromStdString(std::format("{}", id)));
-    QImage img((uchar*) cap.rgb.data(), 640, 480, QImage::Format::Format_RGB888);
-    this->ui->imagePreview->setPixmap(QPixmap::fromImage(img));
+    std::vector<uint8_t> thumbnail;
+    thumbnail.resize(3 * 640 * 480);
 
-    pts = pc;
+    PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
+    newcloud->reserve(640 * 480);
+
+    // take our copy of data
+    for (size_t i = 0; i < video_capture.depth.size(); i++) {
+        int ix = i % 640;
+        int iy = i / 640;
+        uint16_t depth = video_capture.depth[i];
+        auto [r, g, b] = get_color(i, video_capture.rgb, video_mode);
+
+        auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
+
+        Point p(x, y, z, r, g, b);
+        if (filt(p) && depth != 0) {
+            thumbnail[3 * i] = r;
+            thumbnail[3 * i + 1] = g;
+            thumbnail[3 * i + 2] = b;
+
+            newcloud->push_back(p);
+        } else {
+            thumbnail[3 * i] = 0;
+            thumbnail[3 * i + 1] = 0;
+            thumbnail[3 * i + 2] = 0;
+        }
+    }
+    pts = newcloud;
+
+    this->ui->idLabel->setText(QString::fromStdString(std::format("{}", id)));
+    QImage img((uchar *) thumbnail.data(), 640, 480, QImage::Format::Format_RGB888);
+    this->ui->imagePreview->setPixmap(QPixmap::fromImage(img));
 }
 
 void CapturePreview::points_to_file(const std::string &fname)

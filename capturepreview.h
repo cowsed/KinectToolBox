@@ -3,9 +3,9 @@
 
 #include <QList>
 #include <QWidget>
+#include "filtering.h"
 #include "kinect_types.h"
 #include "qdatetime.h"
-
 namespace Ui {
 class CapturePreview;
 }
@@ -17,8 +17,12 @@ public:
     friend QDataStream &operator<<(QDataStream &out, const CapturePreview &item);
 
     explicit CapturePreview(QWidget* parent = nullptr);
-    CapturePreview(
-        int id, VideoCapture cap, PointCloud::Ptr pc, QDateTime time, QWidget *parent = nullptr);
+    CapturePreview(int id,
+                   VideoCapture cap,
+                   VideoType typ,
+                   PointFilter::Filter pc,
+                   QDateTime time,
+                   QWidget *parent = nullptr);
     ~CapturePreview();
     bool is_shown() const;
     PointCloud::Ptr points();

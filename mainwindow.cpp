@@ -89,25 +89,7 @@ void MainWindow::take_capture()
     auto video_capture = freenect_device->take_capture();
     auto filt = this->ui->ParentFilterSlot->get_filter();
 
-    PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
-    newcloud->reserve(640 * 480);
-
-    // take our copy of data
-    for (size_t i = 0; i < video_capture.depth.size(); i++) {
-        int ix = i % 640;
-        int iy = i / 640;
-        uint16_t depth = video_capture.depth[i];
-
-        auto [r, g, b] = get_color(i, video_capture.rgb, video_mode);
-
-        auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
-        Point p(x, y, z, r, g, b);
-        if (filt(p)) {
-            newcloud->push_back(p);
-        }
-    }
-
-    emit new_capture(video_capture, newcloud);
+    emit new_capture(video_capture, video_mode, filt);
 }
 
 void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){

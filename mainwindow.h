@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "filtering.h"
 #include "myfreenectdevice.h"
 #include "qlabel.h"
 #include <future>
@@ -64,7 +65,7 @@ public:
   void new_points();
   void kinect_connected();
   void kinect_disconnected();
-  void new_capture(VideoCapture, PointCloud::Ptr);
+  void new_capture(VideoCapture, VideoType, PointFilter::Filter);
 
   private:
       std::optional<std::string> project_path;

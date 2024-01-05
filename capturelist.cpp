@@ -10,12 +10,12 @@ CaptureList::CaptureList(QWidget* parent)
     ui->setupUi(this);
 }
 
-void CaptureList::add_capture(VideoCapture vc, PointCloud::Ptr pc)
+void CaptureList::add_capture(VideoCapture vc, VideoType typ, PointFilter::Filter filt)
 {
     auto time = QDateTime::currentDateTime();
     int id = next_id();
 
-    CapturePreview *prev = new CapturePreview(id, vc, pc, time, nullptr);
+    CapturePreview *prev = new CapturePreview(id, vc, typ, filt, time, nullptr);
 
     captures.push_back(prev);
     auto listItem = new QListWidgetItem();
@@ -31,6 +31,7 @@ void CaptureList::add_capture(VideoCapture vc, PointCloud::Ptr pc)
         QString::fromStdString(std::format("Captures: {}", captures.size())));
     connect(prev, &CapturePreview::visibility_changed, this, &CaptureList::show_hide_one);
 
+    // Save cloud
     auto fname = prev->get_time().toString();
     fname.replace(' ', '_');
     prev->points_to_file(std::format("capture_{}.pcd", fname.toStdString()));

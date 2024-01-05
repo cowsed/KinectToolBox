@@ -43,7 +43,7 @@ public slots:
      * @brief add_capture recieve a capture from the freenect device and add it to our list
      * @param vc the capture
      */
-    void add_capture(VideoCapture vc, PointCloud::Ptr pc);
+    void add_capture(VideoCapture vc, VideoType typ, PointFilter::Filter filt);
     /**
      * @brief request_capture tell this widget to tell the freenect device to take a capture
      */
