@@ -13,8 +13,10 @@ MainWindow::MainWindow(QApplication &qap, QWidget *parent)
     , live_points({})
 {
     ui->setupUi(this);
-    ui->viewportWidget->set_supplier([this]() -> std::vector<std::span<Point>> {
-        return std::vector{std::span(live_points.begin(), live_points.end())};
+    ui->filterDockWidget->layout()->setAlignment(Qt::AlignTop);
+    ui->viewportWidget->set_supplier([this]() -> std::vector<std::vector<Point>> {
+        return std::vector<std::vector<Point>>{
+            std::vector<Point>(live_points.begin(), live_points.end())};
     });
 
     connect(this,
@@ -108,42 +110,67 @@ void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
     }
 }
 
-std::vector<Point> update_points_rgb(std::vector<Point> old_pts,
-                                     std::span<uint8_t> new_data,
-                                     VideoType video_mode)
+// std::vector<Point> update_points_rgb(std::vector<Point> old_pts,
+// std::span<uint8_t> new_data,
+// VideoType video_mode)
+// {
+// if (old_pts.size() != 640 * 480) {
+// old_pts.resize(640 * 480);
+// }
+// take our copy of data
+// if (video_mode == VideoType::RGB) {
+// for (size_t i = 0; i < old_pts.size(); i++) {
+// old_pts[i].r = new_data[3 * i];
+// old_pts[i].g = new_data[3 * i + 1];
+// old_pts[i].b = new_data[3 * i + 2];
+// }
+// } else {
+// for (size_t i = 0; i < old_pts.size(); i++) {
+// old_pts[i].r = new_data[i];
+// old_pts[i].g = new_data[i];
+// old_pts[i].b = new_data[i];
+// }
+// }
+// return old_pts;
+// }
+auto get_color(int i, std::span<uint8_t> rgb, VideoType vid_mode)
+    -> std::tuple<uint8_t, uint8_t, uint8_t>
 {
-  if (old_pts.size() != 640 * 480) {
-      old_pts.resize(640 * 480);
-  }
-  // take our copy of data
-  if (video_mode == VideoType::RGB) {
-      for (size_t i = 0; i < old_pts.size(); i++) {
-          old_pts[i].r = new_data[3 * i];
-          old_pts[i].g = new_data[3 * i + 1];
-          old_pts[i].b = new_data[3 * i + 2];
-      }
-  } else {
-      for (size_t i = 0; i < old_pts.size(); i++) {
-          old_pts[i].r = new_data[i];
-          old_pts[i].g = new_data[i];
-          old_pts[i].b = new_data[i];
-      }
-  }
-  return old_pts;
+    if (vid_mode == VideoType::RGB) {
+      auto r = rgb[3 * i];
+      auto g = rgb[3 * i + 1];
+      auto b = rgb[3 * i + 2];
+      return {r, g, b};
+    } else {
+      auto g = rgb[i];
+      return {g, g, g};
+    }
 }
-std::vector<Point> update_points_depth(std::vector<Point> old_pts, std::span<uint16_t> new_data)
-{
-  if (old_pts.size() != 640 * 480) {
-      old_pts.resize(640 * 480);
-  }
 
-  // take our copy of data
-  for (size_t i = 0; i < new_data.size(); i++) {
+std::vector<Point> update_points(std::vector<Point> old_pts,
+                                 std::span<uint8_t> rgb_data,
+                                 std::span<uint16_t> depth_data,
+                                 VideoType video_mode,
+                                 PointFilter::Filter filt)
+{
+    if (old_pts.size() != 640 * 480) {
+      old_pts.resize(640 * 480);
+    }
+
+    // take our copy of data
+    for (size_t i = 0; i < depth_data.size(); i++) {
       int x = i % 640;
       int y = i / 640;
-      uint16_t depth = new_data[i];
-      old_pts[i].pos = MyFreenectDevice::pixel_to_point(x, y, depth);
-  }
+      uint16_t depth = depth_data[i];
+
+      auto [r, g, b] = get_color(i, rgb_data, video_mode);
+
+      vec3 pos = MyFreenectDevice::pixel_to_point(x, y, depth);
+      Point p = {.r = r, .g = g, .b = b, .pos = pos};
+      if (filt(p)) {
+          old_pts.push_back(p);
+      }
+    }
   return old_pts;
 }
 
@@ -156,7 +183,12 @@ void MainWindow::try_connect_kinect(){
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
     freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
-        live_points = update_points_rgb(live_points, new_data, freenect_device->video_mode());
+        auto filt = this->ui->ParentFilterSlot->get_filter();
+        live_points = update_points(live_points,
+                                    new_data,
+                                    freenect_device->depth_data(),
+                                    freenect_device->video_mode(),
+                                    filt);
 
         // alert others
         emit new_rgb_data(new_data, freenect_device->video_mode());
@@ -164,11 +196,13 @@ void MainWindow::try_connect_kinect(){
     });
 
     freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
-        // live_points.set_work([this, new_data]() {
-        // std::cout << "work setted" << std::endl;
-        // return update_points_depth(live_points.get(), new_data);
-        // });
-        live_points = update_points_depth(live_points, new_data);
+        auto filt = this->ui->ParentFilterSlot->get_filter();
+
+        live_points = update_points(live_points,
+                                    freenect_device->color_data(),
+                                    new_data,
+                                    freenect_device->video_mode(),
+                                    filt);
 
         // alert others
         emit new_depth_data(new_data);

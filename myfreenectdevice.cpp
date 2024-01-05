@@ -35,6 +35,15 @@ void MyFreenectDevice::DepthCallback(void* _depth, uint32_t timestamp)
   depth_callback(std::span<uint16_t>(m_buffer_depth.begin(), m_buffer_depth.end()));
 }
 
+std::span<uint8_t> MyFreenectDevice::color_data()
+{
+  return std::span(m_buffer_video);
+}
+std::span<uint16_t> MyFreenectDevice::depth_data()
+{
+  return std::span(m_buffer_depth);
+}
+
 void MyFreenectDevice::install_depth_callback(depth_callback_t cb)
 {
   depth_callback = cb;

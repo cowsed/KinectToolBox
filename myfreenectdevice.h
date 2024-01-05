@@ -35,6 +35,9 @@ public:
     void set_ir();
     void set_rgb();
 
+    std::span<uint8_t> color_data();
+    std::span<uint16_t> depth_data();
+
     VideoCapture take_capture();
 
 private:

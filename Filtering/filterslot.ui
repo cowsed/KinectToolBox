@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FilterSlot</class>
+ <widget class="QWidget" name="FilterSlot">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>261</width>
+    <height>418</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QComboBox" name="comboBox">
+     <item>
+      <property name="text">
+       <string>Always Pass</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Component Test</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>And</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Or</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Not</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>comboBox</sender>
+   <signal>currentTextChanged(QString)</signal>
+   <receiver>FilterSlot</receiver>
+   <slot>type_changed(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>130</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>130</x>
+     <y>43</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>type_changed(QString)</slot>
+ </slots>
+</ui>

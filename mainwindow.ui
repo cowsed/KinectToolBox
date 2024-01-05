@@ -297,6 +297,28 @@
     <layout class="QVBoxLayout" name="verticalLayout_4"/>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="filterDockWidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="windowTitle">
+    <string>Filter Points</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="FilterSlot" name="ParentFilterSlot">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+   </widget>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
@@ -331,6 +353,12 @@
   </action>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>FilterSlot</class>
+   <extends>QWidget</extends>
+   <header>Filtering/filterslot.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>PointCloudRenderer</class>
    <extends>QOpenGLWidget</extends>

@@ -47,7 +47,7 @@ struct VideoCapture
 QDataStream& operator<<(QDataStream& out, const VideoCapture& vc);
 QDataStream& operator>>(QDataStream& out, VideoCapture& vc);
 
-using PointSupply = std::vector<std::span<Point>>;
+using PointSupply = std::vector<std::vector<Point>>;
 using PointSupplier = std::function<PointSupply()>;
 
 enum class VideoType {
@@ -97,5 +97,6 @@ private:
     std::future<T> result;
     std::optional<T> thing;
 };
+
 
 #endif // KINECT_TYPES_H

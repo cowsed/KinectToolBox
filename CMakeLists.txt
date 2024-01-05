@@ -23,7 +23,6 @@ find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 
-# find_package(PCL 1.3 REQUIRED COMPONENTS io)
 message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
 
 
@@ -52,6 +51,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(KinectToolBox
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        filtering.h filtering.cpp
+        Filtering/filterslot.h Filtering/filterslot.cpp Filtering/filterslot.ui
+        Filtering/componentbinaryexpression.h Filtering/componentbinaryexpression.cpp Filtering/componentbinaryexpression.ui
+        Filtering/andholder.h Filtering/andholder.cpp Filtering/andholder.ui
+        Filtering/filterwidget.h Filtering/filterwidget.cpp Filtering/filterwidget.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET KinectToolBox APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
