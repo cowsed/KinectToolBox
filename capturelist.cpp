@@ -10,12 +10,12 @@ CaptureList::CaptureList(QWidget* parent)
     ui->setupUi(this);
 }
 
-void CaptureList::add_capture(VideoCapture vc)
+void CaptureList::add_capture(VideoCapture vc, PointCloud::Ptr pc)
 {
     auto time = QDateTime::currentDateTime();
     int id = next_id();
 
-    CapturePreview* prev = new CapturePreview(id, vc, time, nullptr);
+    CapturePreview *prev = new CapturePreview(id, vc, pc, time, nullptr);
 
     captures.push_back(prev);
     auto listItem = new QListWidgetItem();

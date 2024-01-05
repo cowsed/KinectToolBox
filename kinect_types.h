@@ -33,7 +33,6 @@ using Point = pcl::PointXYZRGB;
 
 using DepthPointCapture = std::vector<DepthPoint>;
 
-using PointCapture = std::vector<Point>;
 
 struct VideoCapture
 {

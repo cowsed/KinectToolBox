@@ -14,7 +14,8 @@ CapturePreview::CapturePreview(QWidget* parent)
     connect(ui->checkBox, &QCheckBox::clicked, this, &CapturePreview::checkbox_changed);
 }
 
-CapturePreview::CapturePreview(int id, VideoCapture cap, QDateTime time, QWidget *parent)
+CapturePreview::CapturePreview(
+    int id, VideoCapture cap, PointCloud::Ptr pc, QDateTime time, QWidget *parent)
     : CapturePreview(parent)
 {
     this->id = id;
@@ -25,28 +26,7 @@ CapturePreview::CapturePreview(int id, VideoCapture cap, QDateTime time, QWidget
     QImage img((uchar*) cap.rgb.data(), 640, 480, QImage::Format::Format_RGB888);
     this->ui->imagePreview->setPixmap(QPixmap::fromImage(img));
 
-    pts = std::make_shared<PointCloud>();
-    pts->reserve(640 * 480);
-
-    for (size_t i = 0; i < cap.depth.size(); i++) {
-        int x = i % 640;
-        int y = i / 640;
-        uint16_t depth = cap.depth[i];
-        if (depth == 0) {
-            continue;
-        }
-        Point p;
-        vec3 pos = MyFreenectDevice::pixel_to_point(x, y, depth);
-        p.x = pos.x;
-        p.y = pos.y;
-        p.z = pos.z;
-
-        p.r = cap.rgb[3 * i];
-        p.g = cap.rgb[3 * i + 1];
-        p.b = cap.rgb[3 * i + 2];
-
-        pts->push_back(p);
-    }
+    pts = pc;
 }
 
 void CapturePreview::points_to_file(const std::string &fname)

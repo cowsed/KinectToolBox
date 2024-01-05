@@ -28,6 +28,7 @@ MainWindow::MainWindow(QApplication &qap, QWidget *parent)
     connect(ui->captureList, &CaptureList::take_capture, this, &MainWindow::take_capture);
 
     connect(this, &MainWindow::new_capture, ui->captureList, &CaptureList::add_capture);
+
     connect(this->ui->actionShow_Hide,
             &QAction::triggered,
             this->ui->captureList,
@@ -64,12 +65,49 @@ void MainWindow::save()
         save_to(project_path.value());
     }
 }
+
+auto get_color(int i, std::span<uint8_t> rgb, VideoType vid_mode)
+    -> std::tuple<uint8_t, uint8_t, uint8_t>
+{
+    if (vid_mode == VideoType::RGB) {
+        auto r = rgb[3 * i];
+        auto g = rgb[3 * i + 1];
+        auto b = rgb[3 * i + 2];
+        return {r, g, b};
+    } else {
+        auto g = rgb[i];
+        return {g, g, g};
+    }
+}
+
 void MainWindow::take_capture()
 {
     if (freenect_device == nullptr) {
         return;
     }
-    emit new_capture(freenect_device->take_capture());
+    auto video_mode = freenect_device->video_mode();
+    auto video_capture = freenect_device->take_capture();
+    auto filt = this->ui->ParentFilterSlot->get_filter();
+
+    PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
+    newcloud->reserve(640 * 480);
+
+    // take our copy of data
+    for (size_t i = 0; i < video_capture.depth.size(); i++) {
+        int ix = i % 640;
+        int iy = i / 640;
+        uint16_t depth = video_capture.depth[i];
+
+        auto [r, g, b] = get_color(i, video_capture.rgb, video_mode);
+
+        auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
+        Point p(x, y, z, r, g, b);
+        if (filt(p)) {
+            newcloud->push_back(p);
+        }
+    }
+
+    emit new_capture(video_capture, newcloud);
 }
 
 void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
@@ -86,43 +124,6 @@ void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
       connection_status_label->setText("Connection Unknown");
       connection_status_label->setStyleSheet("color: yellow");
       break;
-    }
-}
-
-// std::vector<Point> update_points_rgb(std::vector<Point> old_pts,
-// std::span<uint8_t> new_data,
-// VideoType video_mode)
-// {
-// if (old_pts.size() != 640 * 480) {
-// old_pts.resize(640 * 480);
-// }
-// take our copy of data
-// if (video_mode == VideoType::RGB) {
-// for (size_t i = 0; i < old_pts.size(); i++) {
-// old_pts[i].r = new_data[3 * i];
-// old_pts[i].g = new_data[3 * i + 1];
-// old_pts[i].b = new_data[3 * i + 2];
-// }
-// } else {
-// for (size_t i = 0; i < old_pts.size(); i++) {
-// old_pts[i].r = new_data[i];
-// old_pts[i].g = new_data[i];
-// old_pts[i].b = new_data[i];
-// }
-// }
-// return old_pts;
-// }
-auto get_color(int i, std::span<uint8_t> rgb, VideoType vid_mode)
-    -> std::tuple<uint8_t, uint8_t, uint8_t>
-{
-    if (vid_mode == VideoType::RGB) {
-      auto r = rgb[3 * i];
-      auto g = rgb[3 * i + 1];
-      auto b = rgb[3 * i + 2];
-      return {r, g, b};
-    } else {
-      auto g = rgb[i];
-      return {g, g, g};
     }
 }
 

@@ -17,7 +17,8 @@ public:
     friend QDataStream &operator<<(QDataStream &out, const CapturePreview &item);
 
     explicit CapturePreview(QWidget* parent = nullptr);
-    CapturePreview(int id, VideoCapture cap, QDateTime time, QWidget *parent = nullptr);
+    CapturePreview(
+        int id, VideoCapture cap, PointCloud::Ptr pc, QDateTime time, QWidget *parent = nullptr);
     ~CapturePreview();
     bool is_shown() const;
     PointCloud::Ptr points();

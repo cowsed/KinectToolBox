@@ -64,7 +64,7 @@ public:
   void new_points();
   void kinect_connected();
   void kinect_disconnected();
-  void new_capture(VideoCapture);
+  void new_capture(VideoCapture, PointCloud::Ptr);
 
   private:
       std::optional<std::string> project_path;
