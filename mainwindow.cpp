@@ -24,42 +24,22 @@ MainWindow::MainWindow(QApplication &qap, QWidget *parent)
             ui->viewportWidget,
             &PointCloudRenderer::point_supplier_update);
 
-    bool srd_video = connect(this,
-                             &MainWindow::new_rgb_data,
-                             ui->videoPlayer,
-                             &VideoPlayer::set_rgb_data);
-    bool sdd_video = connect(this,
-                             &MainWindow::new_depth_data,
-                             ui->videoPlayer,
-                             &VideoPlayer::set_depth_data);
-    assert(srd_video);
-    assert(sdd_video);
+    connect(this, &MainWindow::new_rgb_data, ui->videoPlayer, &VideoPlayer::set_rgb_data);
+    connect(this, &MainWindow::new_depth_data, ui->videoPlayer, &VideoPlayer::set_depth_data);
+    connect(ui->captureList, &CaptureList::take_capture, this, &MainWindow::take_capture);
 
-    bool tc_ok = connect(ui->captureList,
-                         &CaptureList::take_capture,
-                         this,
-                         &MainWindow::take_capture);
-    assert(tc_ok);
-
-    bool newcapok = connect(this,
-                            &MainWindow::new_capture,
-                            ui->captureList,
-                            &CaptureList::add_capture);
-    bool showhideok = connect(this->ui->actionShow_Hide,
-                              &QAction::triggered,
-                              this->ui->captureList,
-                              &CaptureList::toggle_show_hide);
-
-    assert(newcapok);
-    assert(showhideok);
+    connect(this, &MainWindow::new_capture, ui->captureList, &CaptureList::add_capture);
+    connect(this->ui->actionShow_Hide,
+            &QAction::triggered,
+            this->ui->captureList,
+            &CaptureList::toggle_show_hide);
 
     ui->captureRenderer->set_supplier(ui->captureList->points_supplier());
 
-    bool psok = connect(ui->captureList,
-                        &CaptureList::visible_captures_changed,
-                        ui->captureRenderer,
-                        &PointCloudRenderer::point_supplier_update);
-    assert(psok);
+    connect(ui->captureList,
+            &CaptureList::visible_captures_changed,
+            ui->captureRenderer,
+            &PointCloudRenderer::point_supplier_update);
 
     // Setup Statusbar (qt creator wont let you add widgets graphically)
     connection_status_label = new QLabel(this);

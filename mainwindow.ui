@@ -597,6 +597,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>ledRed</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>led_red()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>739</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>kinect_disconnected()</signal>
