@@ -1,5 +1,6 @@
 #include "filterslot.h"
 #include "Filtering/componentbinaryexpression.h"
+#include "Filtering/orholder.h"
 #include "andholder.h"
 #include "qlabel.h"
 #include "ui_filterslot.h"
@@ -12,6 +13,7 @@ FilterSlot::FilterSlot(QWidget *parent)
     ui->setupUi(this);
     ui->verticalLayout->setAlignment(Qt::AlignTop);
     current_child = nullptr;
+    ui->groupBox->hide();
 }
 
 PointFilter::Filter FilterSlot::get_filter() const
@@ -30,27 +32,32 @@ void FilterSlot::type_changed(QString s)
             delete old;
         }
     };
-    ui->verticalLayout->removeWidget(current_child);
+    ui->childLayout->removeWidget(current_child);
 
     if (s == "AlwaysPass") {
-        std::cout << "CANGED Alywas" << std::endl;
-        current_child = nullptr;
-
+        safe_delete_old(current_child);
         typ = SlotType::AlwaysPass;
+        ui->groupBox->hide();
+
     } else if (s == "And") {
-        std::cout << "CANGED and" << std::endl;
         safe_delete_old(current_child);
         current_child = new AndHolder(this);
-        ui->verticalLayout->addWidget(current_child);
+        ui->childLayout->addWidget(current_child);
         typ = SlotType::And;
+        ui->groupBox->show();
+    } else if (s == "Or") {
+        safe_delete_old(current_child);
+        current_child = new OrHolder(this);
+        ui->childLayout->addWidget(current_child);
+        typ = SlotType::Or;
+        ui->groupBox->show();
     } else if (s == "Component Test") {
-        std::cout << "CANGED component" << std::endl;
         safe_delete_old(current_child);
         current_child = new ComponentBinaryExpression(this);
-        ui->verticalLayout->addWidget(current_child);
+        ui->childLayout->addWidget(current_child);
         typ = SlotType::ComponentTest;
+        ui->groupBox->show();
     }
-    std::cout << "CANGED" << s.toStdString() << std::endl;
 }
 
 FilterSlot::~FilterSlot()

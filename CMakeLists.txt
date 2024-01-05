@@ -56,6 +56,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         Filtering/componentbinaryexpression.h Filtering/componentbinaryexpression.cpp Filtering/componentbinaryexpression.ui
         Filtering/andholder.h Filtering/andholder.cpp Filtering/andholder.ui
         Filtering/filterwidget.h Filtering/filterwidget.cpp Filtering/filterwidget.ui
+        Filtering/orholder.h Filtering/orholder.cpp Filtering/orholder.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET KinectToolBox APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
