@@ -41,12 +41,11 @@ CapturePreview::CapturePreview(int id,
     this->time = time;
 
     std::vector<uint8_t> thumbnail;
-    thumbnail.resize(3 * 640 * 480);
+    thumbnail.resize(4 * 640 * 480);
 
     PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
     newcloud->reserve(640 * 480);
 
-    // take our copy of data
     for (size_t i = 0; i < video_capture.depth.size(); i++) {
         int ix = i % 640;
         int iy = i / 640;
@@ -56,22 +55,20 @@ CapturePreview::CapturePreview(int id,
         auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
 
         Point p(x, y, z, r, g, b);
+        thumbnail[4 * i] = r;
+        thumbnail[4 * i + 1] = g;
+        thumbnail[4 * i + 2] = b;
         if (filt(p) && depth != 0) {
-            thumbnail[3 * i] = r;
-            thumbnail[3 * i + 1] = g;
-            thumbnail[3 * i + 2] = b;
-
+            thumbnail[4 * i + 3] = 0xff;
             newcloud->push_back(p);
         } else {
-            thumbnail[3 * i] = 0;
-            thumbnail[3 * i + 1] = 0;
-            thumbnail[3 * i + 2] = 0;
+            thumbnail[4 * i + 3] = 0x00;
         }
     }
     pts = newcloud;
 
     this->ui->idLabel->setText(QString::fromStdString(std::format("{}", id)));
-    QImage img((uchar *) thumbnail.data(), 640, 480, QImage::Format::Format_RGB888);
+    QImage img((uchar *) thumbnail.data(), 640, 480, QImage::Format::Format_RGBA8888);
     this->ui->imagePreview->setPixmap(QPixmap::fromImage(img));
 }
 
