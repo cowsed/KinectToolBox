@@ -14,9 +14,8 @@ MainWindow::MainWindow(QApplication &qap, QWidget *parent)
 {
     ui->setupUi(this);
     ui->filterDockWidget->layout()->setAlignment(Qt::AlignTop);
-    ui->viewportWidget->set_supplier([this]() -> std::vector<std::vector<Point>> {
-        return std::vector<std::vector<Point>>{
-            std::vector<Point>(live_points.begin(), live_points.end())};
+    ui->viewportWidget->set_supplier([this]() -> std::vector<PointCloud::Ptr> {
+        return std::vector<PointCloud::Ptr>{live_points};
     });
 
     connect(this,
@@ -127,31 +126,30 @@ auto get_color(int i, std::span<uint8_t> rgb, VideoType vid_mode)
     }
 }
 
-std::vector<Point> update_points(std::vector<Point> old_pts,
-                                 std::span<uint8_t> rgb_data,
-                                 std::span<uint16_t> depth_data,
-                                 VideoType video_mode,
-                                 PointFilter::Filter filt)
+PointCloud::Ptr update_points(PointCloud::Ptr old_pts,
+                              std::span<uint8_t> rgb_data,
+                              std::span<uint16_t> depth_data,
+                              VideoType video_mode,
+                              PointFilter::Filter filt)
 {
-    if (old_pts.size() != 640 * 480) {
-      old_pts.resize(640 * 480);
-    }
+    PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
+    newcloud->reserve(640 * 480);
 
     // take our copy of data
     for (size_t i = 0; i < depth_data.size(); i++) {
-      int x = i % 640;
-      int y = i / 640;
+      int ix = i % 640;
+      int iy = i / 640;
       uint16_t depth = depth_data[i];
 
       auto [r, g, b] = get_color(i, rgb_data, video_mode);
 
-      vec3 pos = MyFreenectDevice::pixel_to_point(x, y, depth);
-      Point p = {.r = r, .g = g, .b = b, .pos = pos};
+      auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
+      Point p(x, y, z, r, g, b);
       if (filt(p)) {
-          old_pts.push_back(p);
+          newcloud->push_back(p);
       }
     }
-  return old_pts;
+    return newcloud;
 }
 
 void MainWindow::try_connect_kinect(){

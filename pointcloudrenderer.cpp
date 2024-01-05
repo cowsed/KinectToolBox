@@ -67,14 +67,14 @@ void PointCloudRenderer::paintGL()
   if (!color){glColor3ub(255, 255, 255);}
 
   for (auto some_points : points) {
-      for (int i = 0; i < some_points.size(); ++i) {
-          auto p = some_points[i];
+      for (int i = 0; i < some_points->size(); ++i) {
+          auto &p = (*some_points)[i];
 
           if (color) {
-              glColor3ub(some_points[i].r, some_points[i].g, some_points[i].b);
+              glColor3ub(p.r, p.g, p.b);
           }
 
-          glVertex3f(p.pos.x, p.pos.y, p.pos.z);
+          glVertex3f(p.x, p.y, p.z);
       }
   }
 
@@ -123,8 +123,8 @@ void PointCloudRenderer::point_supplier_update()
 {
   points = supplier();
   size_t num = 0;
-  for (auto v : points) {
-      num += v.size();
+  for (auto &v : points) {
+      num += v->size();
   }
   ui->numPointsLabel->setText(QString::fromStdString(std::format("{} Points", num)));
 }

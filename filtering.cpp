@@ -24,20 +24,20 @@ Filter Not(Filter a)
 Filter ComponentLessThan(Component c, float val)
 {
     if (c == Component::X) {
-        return [=](Point p) { return p.pos.x < val; };
+        return [=](Point p) { return p.x < val; };
     } else if (c == Component::Y) {
-        return [=](Point p) { return p.pos.y < val; };
+        return [=](Point p) { return p.y < val; };
     }
-    return [=](Point p) { return p.pos.z < val; };
+    return [=](Point p) { return p.z < val; };
 }
 
 Filter ComponentGreaterThan(Component c, float val)
 {
     if (c == Component::X) {
-        return [=](Point p) { return p.pos.x > val; };
+        return [=](Point p) { return p.x > val; };
     } else if (c == Component::Y) {
-        return [=](Point p) { return p.pos.y > val; };
+        return [=](Point p) { return p.y > val; };
     }
-    return [=](Point p) { return p.pos.z > val; };
+    return [=](Point p) { return p.z > val; };
 }
 } // namespace PointFilter

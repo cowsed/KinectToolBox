@@ -49,11 +49,11 @@ int CaptureList::next_id()
 PointSupplier CaptureList::points_supplier()
 {
     return [this]() {
-        std::vector<std::vector<Point>> pts;
+        std::vector<PointCloud::Ptr> pts;
         for (CapturePreview* cap : captures) {
             if (cap->is_shown()) {
                 auto ps = cap->points();
-                pts.push_back(std::vector<Point>{ps.begin(), ps.end()});
+                pts.push_back(ps);
             }
         }
         return pts;

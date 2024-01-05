@@ -1,5 +1,6 @@
 #include "capturepreview.h"
 #include "myfreenectdevice.h"
+#include "pcl/io/pcd_io.h"
 #include "ui_capturepreview.h"
 #include <iostream>
 
@@ -24,7 +25,8 @@ CapturePreview::CapturePreview(int id, VideoCapture cap, QDateTime time, QWidget
     QImage img((uchar*) cap.rgb.data(), 640, 480, QImage::Format::Format_RGB888);
     this->ui->imagePreview->setPixmap(QPixmap::fromImage(img));
 
-    pts.reserve(640 * 480);
+    pts = std::make_shared<PointCloud>();
+    pts->reserve(640 * 480);
 
     for (size_t i = 0; i < cap.depth.size(); i++) {
         int x = i % 640;
@@ -34,18 +36,23 @@ CapturePreview::CapturePreview(int id, VideoCapture cap, QDateTime time, QWidget
             continue;
         }
         Point p;
-        p.pos = MyFreenectDevice::pixel_to_point(x, y, depth);
+        vec3 pos = MyFreenectDevice::pixel_to_point(x, y, depth);
+        p.x = pos.x;
+        p.y = pos.y;
+        p.z = pos.z;
 
         p.r = cap.rgb[3 * i];
         p.g = cap.rgb[3 * i + 1];
         p.b = cap.rgb[3 * i + 2];
-        pts.push_back(p);
+
+        pts->push_back(p);
     }
 }
 
 void CapturePreview::points_to_file(const std::string &fname)
 {
-    to_pcd(fname, pts);
+    pcl::PCDWriter pw;
+    pw.write<Point>(fname, *pts);
 }
 
 void CapturePreview::checkbox_changed()
@@ -67,9 +74,9 @@ void CapturePreview::set_shown(bool s)
     this->ui->checkBox->setCheckState(cs);
 }
 
-std::span<Point> CapturePreview::points()
+PointCloud::Ptr CapturePreview::points()
 {
-    return std::span(pts);
+    return pts;
 }
 
 bool CapturePreview::is_shown() const
@@ -87,15 +94,15 @@ CapturePreview::~CapturePreview()
     delete ui;
 }
 
-QDataStream &operator<<(QDataStream &out, const CapturePreview &item)
-{
-    QDataStream::FloatingPointPrecision prev = out.floatingPointPrecision();
-    out.setFloatingPointPrecision(QDataStream::DoublePrecision);
-    QList<Point> pts(item.pts.size());
-    std::copy(item.pts.begin(), item.pts.end(), pts.begin());
+// QDataStream &operator<<(QDataStream &out, const CapturePreview &item)
+// {
+//     QDataStream::FloatingPointPrecision prev = out.floatingPointPrecision();
+//     out.setFloatingPointPrecision(QDataStream::DoublePrecision);
+//     QList<Point> pts(item.pts.size());
+//     std::copy(item.pts.begin(), item.pts.end(), pts.begin());
 
-    out << item.get_id() << item.get_time() << item.is_shown() << pts;
+//     out << item.get_id() << item.get_time() << item.is_shown() << pts;
 
-    out.setFloatingPointPrecision(prev);
-    return out;
-}
+//     out.setFloatingPointPrecision(prev);
+//     return out;
+// }

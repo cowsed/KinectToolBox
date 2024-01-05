@@ -74,7 +74,7 @@ public:
       QApplication& qap;
       Freenect::Freenect freenect_ctx;
       MyFreenectDevice* freenect_device = nullptr;
-      std::vector<Point> live_points;
+      PointCloud::Ptr live_points;
 
       std::thread data_check_thread;
       std::mutex data_mtx;
