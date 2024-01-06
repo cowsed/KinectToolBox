@@ -26,9 +26,9 @@ public:
         float f = 595.f;
         // Convert from image plane coordinates to world coordinates
         return {
-            .x = (x - (640 - 1) / 2.f) * depth / f, // X = (x - cx) * d / fx
-            .y = (y - (480 - 1) / 2.f) * depth / f, // Y = (y - cy) * d / fy
-            .z = depth // Z = d
+            .x = -(x - (640 - 1) / 2.f) * depth / f, // X = (x - cx) * d / fx
+            .y = -(y - (480 - 1) / 2.f) * depth / f, // Y = (y - cy) * d / fy
+            .z = depth                               // Z = d
         };
     }
     VideoType video_mode();

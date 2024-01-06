@@ -98,7 +98,7 @@ void PointCloudRenderer::paintGL()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glScalef(zoom, zoom, 1);
-  gluLookAt(-7 * anglex, -7 * angley, -1000.0, 0.0, 0.0, 2000.0, 0.0, -1.0, 0.0);
+  gluLookAt(-7 * anglex, -7 * angley, -1000.0, 0.0, 0.0, 2000.0, 0.0, 1.0, 0.0);
   this->update();
 }
 
@@ -154,8 +154,8 @@ void PointCloudRenderer::mouseMoveEvent(QMouseEvent* event)
   int dx = rx - last_rx;
   int dy = ry - last_ry;
   if (event->buttons().testFlag(Qt::MouseButton::LeftButton)) {
-    anglex += (dx * 0.5);
-    angley += (dy * 0.5);
+    anglex -= (dx * 0.5);
+    angley -= (dy * 0.5);
   }
   last_rx = rx;
   last_ry = ry;
