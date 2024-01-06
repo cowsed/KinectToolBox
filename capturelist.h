@@ -1,12 +1,12 @@
 #ifndef CAPTURELIST_H
 #define CAPTURELIST_H
 
+#include <QDataStream>
 #include <QJsonObject>
+#include <QTimer>
 #include <QWidget>
 #include "capturepreview.h"
 #include "kinect_types.h"
-
-#include <QDataStream>
 namespace Ui {
 class CaptureList;
 }
@@ -20,12 +20,14 @@ class CaptureList : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CaptureList(QWidget* parent = nullptr);
+    const QString play_icon = "▶️";
+    const QString pause_icon = "⏸️";
+    explicit CaptureList(QWidget *parent = nullptr);
     ~CaptureList();
 
     int next_id();
     PointSupplier points_supplier();
-
+    void save_all(const QString &path);
 signals:
     /**
      * @brief take_capture
@@ -43,7 +45,7 @@ public slots:
      * @brief add_capture recieve a capture from the freenect device and add it to our list
      * @param vc the capture
      */
-    void add_capture(VideoCapture vc, VideoType typ, PointFilter::Filter filt);
+    void add_capture(VideoCapture vc, PointFilter::Filter filt);
     /**
      * @brief request_capture tell this widget to tell the freenect device to take a capture
      */
@@ -54,11 +56,14 @@ public slots:
      */
     void toggle_show_hide();
     void show_hide_one();
+    void toggle_recording();
 
 private:
     Ui::CaptureList* ui;
     int id = 0;
     std::vector<CapturePreview*> captures;
+    bool recording = false;
+    QTimer timer;
 };
 
 #endif // CAPTURELIST_H

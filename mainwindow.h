@@ -1,5 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+#include <QFileDialog>
 
 #include <QMainWindow>
 #include "filtering.h"
@@ -15,11 +16,6 @@ class MainWindow;
 QT_END_NAMESPACE
 
 
-enum class KinectConnectionStatus{
-  Connected,
-  Disconnected,
-  Unknown,
-};
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -29,6 +25,8 @@ public:
   ~MainWindow();
 
   void save_to(std::string path);
+  void disable_disconnect();
+  void enable_connect();
 
   public slots:
       void quit();
@@ -59,13 +57,16 @@ public:
 
       void set_ir(int on);
 
+      void export_captures();
+      void export_captures_to_directory(const QString &dir);
+
   signals:
   void new_rgb_data(std::span<uint8_t> data, VideoType typ);
   void new_depth_data(std::span<uint16_t> data);
   void new_points();
   void kinect_connected();
   void kinect_disconnected();
-  void new_capture(VideoCapture, VideoType, PointFilter::Filter);
+  void new_capture(VideoCapture, PointFilter::Filter);
 
   private:
       std::optional<std::string> project_path;
@@ -82,6 +83,7 @@ public:
       std::optional<Freenect::FreenectTiltState> tilt_state;
       bool thread_should_stop = false;
 
+      QFileDialog *fd = new QFileDialog();
       // needed here cuz status bar widgets are weird
       QLabel* connection_status_label;
 };

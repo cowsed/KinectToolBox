@@ -14,50 +14,42 @@ CapturePreview::CapturePreview(QWidget* parent)
     connect(ui->checkBox, &QCheckBox::clicked, this, &CapturePreview::checkbox_changed);
 }
 
-static auto get_color(int i, std::span<uint8_t> rgb, VideoType vid_mode)
-    -> std::tuple<uint8_t, uint8_t, uint8_t>
+static auto get_color(int i, std::span<uint8_t> rgb) -> std::tuple<uint8_t, uint8_t, uint8_t>
 {
-    if (vid_mode == VideoType::RGB) {
         auto r = rgb[3 * i];
         auto g = rgb[3 * i + 1];
         auto b = rgb[3 * i + 2];
         return {r, g, b};
-    } else {
-        auto g = rgb[i];
-        return {g, g, g};
-    }
 }
 
 CapturePreview::CapturePreview(int id,
                                VideoCapture video_capture,
-                               VideoType video_mode,
                                PointFilter::Filter filt,
                                QDateTime time,
                                QWidget *parent)
     : CapturePreview(parent)
 {
     this->id = id;
-    this->cap = video_capture;
     this->time = time;
 
-    std::vector<uint8_t> thumbnail;
     thumbnail.resize(4 * 640 * 480);
 
     PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
     newcloud->reserve(640 * 480);
 
+    // Build thumbnail
     for (size_t i = 0; i < video_capture.depth.size(); i++) {
         int ix = i % 640;
         int iy = i / 640;
         uint16_t depth = video_capture.depth[i];
-        auto [r, g, b] = get_color(i, video_capture.rgb, video_mode);
-
+        auto [r, g, b] = get_color(i, video_capture.rgb);
         auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
 
         Point p(x, y, z, r, g, b);
         thumbnail[4 * i] = r;
         thumbnail[4 * i + 1] = g;
         thumbnail[4 * i + 2] = b;
+
         if (filt(p) && depth != 0) {
             thumbnail[4 * i + 3] = 0xff;
             newcloud->push_back(p);
@@ -69,6 +61,7 @@ CapturePreview::CapturePreview(int id,
 
     this->ui->idLabel->setText(QString::fromStdString(std::format("{}", id)));
     QImage img((uchar *) thumbnail.data(), 640, 480, QImage::Format::Format_RGBA8888);
+
     this->ui->imagePreview->setPixmap(QPixmap::fromImage(img));
 }
 

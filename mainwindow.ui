@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="windowIcon">
+   <iconset theme="user-bookmarks"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -109,6 +112,7 @@
      <string>Capture</string>
     </property>
     <addaction name="actionShow_Hide"/>
+    <addaction name="actionExport_Captures"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuDevice"/>
@@ -272,6 +276,9 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="videoDockWidget">
+   <property name="floating">
+    <bool>false</bool>
+   </property>
    <property name="windowTitle">
     <string>Video Streams</string>
    </property>
@@ -287,6 +294,9 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="captureDock">
+   <property name="windowIcon">
+    <iconset theme="applications-development"/>
+   </property>
    <property name="windowTitle">
     <string>Captures</string>
    </property>
@@ -349,6 +359,11 @@
    </property>
    <property name="shortcut">
     <string>H</string>
+   </property>
+  </action>
+  <action name="actionExport_Captures">
+   <property name="text">
+    <string>Export Captures</string>
    </property>
   </action>
  </widget>
@@ -613,6 +628,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionExport_Captures</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>export_captures()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>kinect_disconnected()</signal>
@@ -633,5 +664,6 @@
   <slot>set_ir(int)</slot>
   <slot>take_capture()</slot>
   <slot>disconnect_kinect()</slot>
+  <slot>export_captures()</slot>
  </slots>
 </ui>

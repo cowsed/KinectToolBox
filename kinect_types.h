@@ -13,6 +13,12 @@
 #include <span>
 #include <vector>
 
+enum class KinectConnectionStatus {
+    Connected,
+    Disconnected,
+    Unknown,
+};
+
 struct vec3 {
     float x, y, z;
 };
@@ -33,6 +39,10 @@ using Point = pcl::PointXYZRGB;
 
 using DepthPointCapture = std::vector<DepthPoint>;
 
+enum class VideoType {
+    RGB,
+    IR,
+};
 
 struct VideoCapture
 {
@@ -48,10 +58,6 @@ using PointCloud = pcl::PointCloud<Point>;
 using PointSupply = std::vector<PointCloud::Ptr>;
 using PointSupplier = std::function<PointSupply()>;
 
-enum class VideoType {
-    RGB,
-    IR,
-};
 
 
 #endif // KINECT_TYPES_H

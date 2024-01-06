@@ -65,19 +65,16 @@ void MainWindow::save()
         save_to(project_path.value());
     }
 }
-
-auto get_color(int i, std::span<uint8_t> rgb, VideoType vid_mode)
-    -> std::tuple<uint8_t, uint8_t, uint8_t>
+void MainWindow::export_captures()
 {
-    if (vid_mode == VideoType::RGB) {
-        auto r = rgb[3 * i];
-        auto g = rgb[3 * i + 1];
-        auto b = rgb[3 * i + 2];
-        return {r, g, b};
-    } else {
-        auto g = rgb[i];
-        return {g, g, g};
-    }
+    fd->setFileMode(QFileDialog::FileMode::Directory);
+    fd->open();
+    connect(fd, &QFileDialog::fileSelected, this, &MainWindow::export_captures_to_directory);
+}
+void MainWindow::export_captures_to_directory(const QString &dir)
+{
+    disconnect(fd, &QFileDialog::fileSelected, this, &MainWindow::export_captures_to_directory);
+    ui->captureList->save_all(dir);
 }
 
 void MainWindow::take_capture()
@@ -85,11 +82,11 @@ void MainWindow::take_capture()
     if (freenect_device == nullptr) {
         return;
     }
-    auto video_mode = freenect_device->video_mode();
+
     auto video_capture = freenect_device->take_capture();
     auto filt = this->ui->ParentFilterSlot->get_filter();
 
-    emit new_capture(video_capture, video_mode, filt);
+    emit new_capture(video_capture, filt);
 }
 
 void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
@@ -97,16 +94,47 @@ void MainWindow::set_connection_status_ui(KinectConnectionStatus stat){
     case KinectConnectionStatus::Connected:
       connection_status_label->setText("Connected :)");
       connection_status_label->setStyleSheet("color: green");
+      enable_connect();
       break;
     case KinectConnectionStatus::Disconnected:
       connection_status_label->setText("Disconnected :(");
       connection_status_label->setStyleSheet("color: red");
+      disable_disconnect();
       break;
     case KinectConnectionStatus::Unknown:
       connection_status_label->setText("Connection Unknown");
       connection_status_label->setStyleSheet("color: yellow");
+      disable_disconnect();
       break;
     }
+}
+
+void MainWindow::disable_disconnect()
+{
+    ui->captureDock->setDisabled(true);
+    ui->controlDockWidget->setDisabled(true);
+    ui->filterDockWidget->setDisabled(true);
+    ui->videoDockWidget->setDisabled(true);
+    ui->actionDisconnect->setDisabled(true);
+    ui->actionReconnect->setDisabled(false);
+}
+void MainWindow::enable_connect()
+{
+    ui->captureDock->setDisabled(false);
+    ui->controlDockWidget->setDisabled(false);
+    ui->filterDockWidget->setDisabled(false);
+    ui->videoDockWidget->setDisabled(false);
+
+    ui->actionDisconnect->setDisabled(false);
+    ui->actionReconnect->setDisabled(true);
+}
+
+static auto get_color(int i, std::span<uint8_t> rgb) -> std::tuple<uint8_t, uint8_t, uint8_t>
+{
+    auto r = rgb[3 * i];
+    auto g = rgb[3 * i + 1];
+    auto b = rgb[3 * i + 2];
+    return {r, g, b};
 }
 
 PointCloud::Ptr update_points(PointCloud::Ptr old_pts,
@@ -124,7 +152,7 @@ PointCloud::Ptr update_points(PointCloud::Ptr old_pts,
       int iy = i / 640;
       uint16_t depth = depth_data[i];
 
-      auto [r, g, b] = get_color(i, rgb_data, video_mode);
+      auto [r, g, b] = get_color(i, rgb_data);
 
       auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
       Point p(x, y, z, r, g, b);
@@ -212,9 +240,6 @@ void MainWindow::disconnect_kinect()
 
 void MainWindow::quit()
 {
-  disconnect_kinect();
-  std::cout << "quit\n"
-            << std::endl;
   this->close();
 }
 
@@ -256,6 +281,7 @@ void MainWindow::data_check_thread_runner(MainWindow *win_ptr){
 void MainWindow::led_off(){
   set_led(freenect_led_options::LED_OFF);
 }
+
 void MainWindow::led_green()
 {
   set_led(freenect_led_options::LED_GREEN);
@@ -264,17 +290,21 @@ void MainWindow::led_green()
 void MainWindow::led_yellow(){
   set_led(freenect_led_options::LED_YELLOW);
 }
+
 void MainWindow::led_red()
 {
   set_led(freenect_led_options::LED_RED);
 }
+
 void MainWindow::led_blink_green()
 {
   set_led(freenect_led_options::LED_BLINK_GREEN);
 }
+
 void MainWindow::led_blink_red_yellow(){
   set_led(freenect_led_options::LED_BLINK_RED_YELLOW);
 }
+
 void MainWindow::set_led(freenect_led_options opt){
   if (freenect_device == nullptr){
     return;
@@ -284,6 +314,9 @@ void MainWindow::set_led(freenect_led_options opt){
 
 void MainWindow::set_ir(int on)
 {
+  if (freenect_device == nullptr) {
+    return;
+  }
   if (freenect_device->video_mode() == VideoType::RGB) {
     freenect_device->set_ir();
   } else {
@@ -303,5 +336,6 @@ void MainWindow::set_angle(int angle)
 
 MainWindow::~MainWindow()
 {
+  disconnect_kinect();
   delete ui;
 }

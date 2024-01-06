@@ -98,9 +98,7 @@ void PointCloudRenderer::paintGL()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glScalef(zoom, zoom, 1);
-  // glRotated(anglex, 0, 0, 0);
-  gluLookAt(-7 * anglex, -7 * angley, -1000.0, 0.0, 0.0, 2000.0, 0.0, -1.0,
-      0.0);
+  gluLookAt(-7 * anglex, -7 * angley, -1000.0, 0.0, 0.0, 2000.0, 0.0, -1.0, 0.0);
   this->update();
 }
 

@@ -19,7 +19,6 @@ public:
     explicit CapturePreview(QWidget* parent = nullptr);
     CapturePreview(int id,
                    VideoCapture cap,
-                   VideoType typ,
                    PointFilter::Filter pc,
                    QDateTime time,
                    QWidget *parent = nullptr);
@@ -40,7 +39,7 @@ signals:
 
 private:
     Ui::CapturePreview* ui;
-    VideoCapture cap;
+    std::vector<uint8_t> thumbnail;
     PointCloud::Ptr pts;
     QDateTime time;
     int id;
