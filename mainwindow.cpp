@@ -136,6 +136,13 @@ static auto get_color(int i, std::span<uint8_t> rgb) -> std::tuple<uint8_t, uint
     auto b = rgb[3 * i + 2];
     return {r, g, b};
 }
+static auto get_ir(int i, std::span<uint8_t> rgb) -> std::tuple<uint8_t, uint8_t, uint8_t>
+{
+    auto r = rgb[i];
+    auto g = rgb[i];
+    auto b = rgb[i];
+    return {r, g, b};
+}
 
 PointCloud::Ptr update_points(PointCloud::Ptr old_pts,
                               std::span<uint8_t> rgb_data,
@@ -152,7 +159,7 @@ PointCloud::Ptr update_points(PointCloud::Ptr old_pts,
       int iy = i / 640;
       uint16_t depth = depth_data[i];
 
-      auto [r, g, b] = get_color(i, rgb_data);
+      auto [r, g, b] = video_mode == VideoType::RGB ? get_color(i, rgb_data) : get_ir(i, rgb_data);
 
       auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
       Point p(x, y, z, r, g, b);
