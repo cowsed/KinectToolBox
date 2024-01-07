@@ -31,8 +31,8 @@ CapturePreview::CapturePreview(int id,
 
     // Build thumbnail
     for (size_t i = 0; i < video_capture.pix.size(); i++) {
-        int image_x = i % kinect_video_width;
-        int image_y = i / kinect_video_width;
+        size_t image_x = i % kinect_video_width;
+        size_t image_y = i / kinect_video_width;
 
         uint16_t depth = video_capture.pix[i].depth;
         auto [r, g, b] = video_capture.pix[i].col;

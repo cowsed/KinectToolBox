@@ -2,6 +2,10 @@
 #include "ui_videoplayer.h"
 #include <iostream>
 
+#undef emit
+#include <execution>
+#define emit Q_EMIT
+
 constexpr QSize frame_size(kinect_video_width, kinect_video_height);
 
 std::array<rgb, rgb_buffer_size> default_rgb_image_data;
@@ -72,7 +76,7 @@ void VideoPlayer::set_depth_data(std::span<uint16_t> data)
 
     remapped_depth.resize(num_pixels);
 
-    std::transform(data.cbegin(), data.cend(), remapped_depth.begin(), remap);
+    std::transform(std::execution::par, data.cbegin(), data.cend(), remapped_depth.begin(), remap);
 
     depth_img = QImage((uchar*) remapped_depth.data(),
                        frame_size.width(),

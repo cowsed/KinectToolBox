@@ -6,16 +6,42 @@
 #include <iostream>
 #include <span>
 
+PointCloud::Ptr update_points(std::span<rgb> rgb_data,
+                              std::span<uint16_t> depth_data,
+                              const PointFilter::Filter &filt)
+{
+    PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
+    newcloud->reserve(num_pixels);
+
+    // take our copy of data
+    for (size_t i = 0; i < depth_data.size(); i++) {
+        size_t image_x = i % kinect_video_width;
+        size_t image_y = i / kinect_video_width;
+
+        uint16_t depth = depth_data[i];
+
+        auto [r, g, b] = rgb_data[i];
+        auto [x, y, z] = MyFreenectDevice::pixel_to_point(image_x, image_y, depth);
+
+        Point point(x, y, z, r, g, b);
+
+        if (depth != 0 && filt(point)) {
+            newcloud->push_back(point);
+        }
+    }
+    return newcloud;
+}
+
 MainWindow::MainWindow(QApplication &qap, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , qap(qap)
-    , live_points({})
+    , live_points(update_points, std::make_shared<PointCloud>(), [this]() { emit new_points(); })
 {
     ui->setupUi(this);
     ui->filterDockWidget->layout()->setAlignment(Qt::AlignTop);
     ui->viewportWidget->set_supplier([this]() -> std::vector<PointCloud::Ptr> {
-        return std::vector<PointCloud::Ptr>{live_points};
+        return std::vector<PointCloud::Ptr>{live_points.get_result()};
     });
 
     connect(this,
@@ -148,32 +174,6 @@ static auto get_ir(size_t pixel_index, std::span<uint8_t> rgb)
     };
 }
 
-PointCloud::Ptr update_points(std::span<rgb> rgb_data,
-                              std::span<uint16_t> depth_data,
-                              VideoType video_mode,
-                              const PointFilter::Filter &filt)
-{
-    PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
-    newcloud->reserve(num_pixels);
-
-    // take our copy of data
-    for (size_t i = 0; i < depth_data.size(); i++) {
-      size_t image_x = i % kinect_video_width;
-      size_t image_y = i / kinect_video_width;
-
-      uint16_t depth = depth_data[i];
-
-      auto [r, g, b] = rgb_data[i];
-      auto [x, y, z] = MyFreenectDevice::pixel_to_point(image_x, image_y, depth);
-
-      Point point(x, y, z, r, g, b);
-
-      if (depth != 0 && filt(point)) {
-          newcloud->push_back(point);
-      }
-    }
-    return newcloud;
-}
 
 void MainWindow::try_connect_kinect(){
   if (freenect_device != nullptr) {
@@ -184,25 +184,18 @@ void MainWindow::try_connect_kinect(){
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
     freenect_device->install_color_callback([this](std::span<rgb> new_data) {
-        live_points = update_points(new_data,
-                                    freenect_device->depth_data(),
-                                    freenect_device->video_mode(),
-                                    ui->ParentFilterSlot->get_filter());
-
+        live_points.add_work(new_data,
+                             freenect_device->depth_data(),
+                             ui->ParentFilterSlot->get_filter());
         // alert others
-        emit new_rgb_data(new_data, freenect_device->video_mode());
-        emit new_points();
+        emit new_rgb_data(new_data);
     });
 
     freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
-        live_points = update_points(freenect_device->color_data(),
-                                    new_data,
-                                    freenect_device->video_mode(),
-                                    ui->ParentFilterSlot->get_filter());
-
-        // alert others
+        live_points.add_work(freenect_device->color_data(),
+                             new_data,
+                             ui->ParentFilterSlot->get_filter());
         emit new_depth_data(new_data);
-        emit new_points();
     });
 
     freenect_device->startVideo();
@@ -331,7 +324,7 @@ void MainWindow::set_ir(int on)
   if (freenect_device == nullptr) {
     return;
   }
-  if (freenect_device->video_mode() == VideoType::RGB) {
+  if (freenect_device->video_mode() == MyFreenectDevice::VideoType::RGB) {
     freenect_device->set_ir();
   } else {
     freenect_device->set_rgb();

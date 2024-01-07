@@ -10,6 +10,10 @@
 
 class MyFreenectDevice : public Freenect::FreenectDevice {
 public:
+    enum class VideoType {
+        RGB,
+        IR,
+    };
     using color_callback_t = std::function<void(std::span<rgb>)>;
     using depth_callback_t = std::function<void(std::span<uint16_t>)>;
     MyFreenectDevice(freenect_context* _ctx, int _index);

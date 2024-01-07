@@ -50,11 +50,6 @@ using Point = pcl::PointXYZRGB;
 
 using DepthPointCapture = std::vector<DepthPoint>;
 
-enum class VideoType {
-    RGB,
-    IR,
-};
-
 struct VideoCapture
 {
     std::vector<DepthPoint> pix;

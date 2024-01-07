@@ -18,7 +18,7 @@ public:
     virtual QSize sizeHint() const;
     QPixmap scaledPixmap() const;
 public slots:
-    void setPixmap(const QPixmap&);
+    void setPixmap(const QPixmap &);
     void resizeEvent(QResizeEvent*);
 
 private:

@@ -1,6 +1,10 @@
 #include "myfreenectdevice.h"
-#include <iostream>
 
+#undef emit
+#include <execution>
+#define emit Q_EMIT
+
+#include <iostream>
 MyFreenectDevice::MyFreenectDevice(freenect_context *_ctx, int _index)
     : Freenect::FreenectDevice(_ctx, _index)
     , m_buffer_video(num_pixels)
@@ -86,7 +90,7 @@ uint64_t MyFreenectDevice::depth_samples() const
   return depth_count;
 }
 
-VideoType MyFreenectDevice::video_mode()
+MyFreenectDevice::VideoType MyFreenectDevice::video_mode()
 {
   return current_video_type;
 }

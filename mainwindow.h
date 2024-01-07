@@ -6,6 +6,7 @@
 #include "filtering.h"
 #include "myfreenectdevice.h"
 #include "qlabel.h"
+#include "threadworker.h"
 #include <future>
 #include <thread>
 
@@ -22,7 +23,7 @@ class MainWindow : public QMainWindow {
 
 public:
     explicit MainWindow(QApplication &qap, QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
 
     void save_to(const std::string &path);
     void disable_disconnect();
@@ -61,7 +62,7 @@ public slots:
     void export_captures_to_directory(const QString &dir);
 
 signals:
-    void new_rgb_data(std::span<rgb> data, VideoType typ);
+    void new_rgb_data(std::span<rgb> data);
     void new_depth_data(std::span<uint16_t> data);
     void new_points();
     void kinect_connected();
@@ -76,7 +77,8 @@ private:
     QApplication &qap;
     Freenect::Freenect freenect_ctx;
     MyFreenectDevice *freenect_device = nullptr;
-    PointCloud::Ptr live_points;
+    ThreadWorker<PointCloud::Ptr, std::span<rgb>, std::span<uint16_t>, const PointFilter::Filter &>
+        live_points;
 
     std::thread data_check_thread;
     std::mutex data_mtx;

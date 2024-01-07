@@ -9,9 +9,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(ADDRESS_SANITIZE ON)
+set(ADDRESS_SANITIZE OFF)
 
 add_compile_definitions(QT_FATAL_WARNINGS=1)
+
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
@@ -56,6 +57,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         Filtering/andholder.h Filtering/andholder.cpp Filtering/andholder.ui
         Filtering/filterwidget.h Filtering/filterwidget.cpp Filtering/filterwidget.ui
         Filtering/orholder.h Filtering/orholder.cpp Filtering/orholder.ui
+        threadworker.h threadworker.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET KinectToolBox APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -90,6 +92,7 @@ target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_libraries(KinectToolBox PRIVATE freenect)
 
+target_link_libraries(KinectToolBox PRIVATE tbb)
 
 add_definitions(${PCL_DEFINITIONS})
 
