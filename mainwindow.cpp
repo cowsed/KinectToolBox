@@ -148,8 +148,7 @@ static auto get_ir(size_t pixel_index, std::span<uint8_t> rgb)
     };
 }
 
-PointCloud::Ptr update_points(const PointCloud::Ptr &old_pts,
-                              std::span<uint8_t> rgb_data,
+PointCloud::Ptr update_points(std::span<rgb> rgb_data,
                               std::span<uint16_t> depth_data,
                               VideoType video_mode,
                               const PointFilter::Filter &filt)
@@ -164,7 +163,7 @@ PointCloud::Ptr update_points(const PointCloud::Ptr &old_pts,
 
       uint16_t depth = depth_data[i];
 
-      auto [r, g, b] = video_mode == VideoType::RGB ? get_color(i, rgb_data) : get_ir(i, rgb_data);
+      auto [r, g, b] = rgb_data[i];
       auto [x, y, z] = MyFreenectDevice::pixel_to_point(image_x, image_y, depth);
 
       Point point(x, y, z, r, g, b);
@@ -184,9 +183,8 @@ void MainWindow::try_connect_kinect(){
   try {
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
-    freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
-        live_points = update_points(live_points,
-                                    new_data,
+    freenect_device->install_color_callback([this](std::span<rgb> new_data) {
+        live_points = update_points(new_data,
                                     freenect_device->depth_data(),
                                     freenect_device->video_mode(),
                                     ui->ParentFilterSlot->get_filter());
@@ -197,8 +195,7 @@ void MainWindow::try_connect_kinect(){
     });
 
     freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
-        live_points = update_points(live_points,
-                                    freenect_device->color_data(),
+        live_points = update_points(freenect_device->color_data(),
                                     new_data,
                                     freenect_device->video_mode(),
                                     ui->ParentFilterSlot->get_filter());

@@ -30,6 +30,11 @@ struct vec3 {
     float x, y, z;
 };
 
+struct rgb
+{
+    uint8_t r, g, b;
+};
+
 // QDataStream& operator<<(QDataStream& out, const vec3& p);
 // QDataStream& operator>>(QDataStream& in, vec3& p);
 
@@ -53,7 +58,7 @@ enum class VideoType {
 
 struct VideoCapture
 {
-    std::vector<uint8_t> rgb;
+    std::vector<rgb> rgb;
     std::vector<uint16_t> depth;
 };
 

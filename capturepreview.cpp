@@ -42,7 +42,8 @@ CapturePreview::CapturePreview(int id,
         int ix = i % 640;
         int iy = i / 640;
         uint16_t depth = video_capture.depth[i];
-        auto [r, g, b] = get_color(i, video_capture.rgb);
+        auto [r, g, b] = video_capture.rgb[i];
+
         auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
 
         Point p(x, y, z, r, g, b);

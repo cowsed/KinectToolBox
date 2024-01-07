@@ -10,15 +10,41 @@ MyFreenectDevice::MyFreenectDevice(freenect_context *_ctx, int _index)
 {
     setDepthFormat(FREENECT_DEPTH_REGISTERED);
 }
+
+static auto get_color(size_t pixel_index, std::span<uint8_t> buf) -> rgb
+{
+    return {
+        buf[3 * pixel_index],
+        buf[3 * pixel_index + 1],
+        buf[3 * pixel_index + 2],
+    };
+}
+static auto get_ir(size_t pixel_index, std::span<uint8_t> buf) -> rgb
+{
+    return {
+        buf[pixel_index],
+        buf[pixel_index],
+        buf[pixel_index],
+    };
+}
+
 // Do not call directly, even in child
 void MyFreenectDevice::VideoCallback(void *_rgb, uint32_t timestamp) {
   std::scoped_lock<std::mutex> lock(m_rgb_mutex);
-  auto *rgb = static_cast<uint8_t *>(_rgb);
-  copy(rgb, rgb + getVideoBufferSize(), m_buffer_video.begin());
+
+  size_t buf_size = current_video_type == VideoType::RGB ? rgba_buffer_size : depth_buffer_size;
+
+  std::span<uint8_t> rgb_buf = std::span<uint8_t>(static_cast<uint8_t *>(_rgb), buf_size);
+
+  for (size_t i = 0; i < num_pixels; i++) {
+      rgb col = current_video_type == VideoType::RGB ? get_color(i, rgb_buf) : get_ir(i, rgb_buf);
+      m_buffer_video[i] = col;
+  }
+
   m_new_rgb_frame = true;
   rgb_timestamp = timestamp;
   rgb_count++;
-  rgb_callback(std::span<uint8_t>(m_buffer_video.begin(), m_buffer_video.end()));
+  rgb_callback(std::span<rgb>(m_buffer_video.begin(), m_buffer_video.end()));
 }
 
 // Do not call directly, even in child
@@ -33,7 +59,7 @@ void MyFreenectDevice::DepthCallback(void* _depth, uint32_t timestamp)
   depth_callback(std::span<uint16_t>(m_buffer_depth.begin(), m_buffer_depth.end()));
 }
 
-std::span<uint8_t> MyFreenectDevice::color_data()
+std::span<rgb> MyFreenectDevice::color_data()
 {
   return {m_buffer_video};
 }
@@ -78,21 +104,13 @@ void MyFreenectDevice::set_rgb()
 
 VideoCapture MyFreenectDevice::take_capture()
 {
-  std::vector<uint8_t> rgb(rgb_buffer_size);
+  std::vector<rgb> rgb_buf(rgb_buffer_size);
   std::vector<uint16_t> depth(depth_buffer_size);
 
   std::copy(m_buffer_depth.begin(), m_buffer_depth.end(), depth.begin());
+  std::copy(m_buffer_video.begin(), m_buffer_video.end(), rgb_buf.begin());
 
-  if (current_video_type == VideoType::RGB) {
-      std::copy(m_buffer_video.begin(), m_buffer_video.end(), rgb.begin());
-  } else {
-      for (size_t i = 0; i < num_pixels; i++) {
-          rgb[3 * i] = m_buffer_video[i];
-          rgb[3 * i + 1] = m_buffer_video[i];
-          rgb[3 * i + 2] = m_buffer_video[i];
-      }
-  }
-  return {.rgb = rgb, .depth = depth};
+  return {.rgb = rgb_buf, .depth = depth};
 }
 
 vec3 MyFreenectDevice::pixel_to_point(size_t image_x, size_t image_y, float depth)

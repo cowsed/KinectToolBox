@@ -4,7 +4,7 @@
 
 constexpr QSize frame_size(kinect_video_width, kinect_video_height);
 
-std::array<uint8_t, rgb_buffer_size> default_rgb_image_data;
+std::array<rgb, rgb_buffer_size> default_rgb_image_data;
 std::array<uint16_t, depth_buffer_size> default_depth_image_data;
 
 VideoPlayer::VideoPlayer(QWidget *parent)
@@ -47,7 +47,7 @@ void VideoPlayer::reset()
     ui->depthLabel->setPixmap(QPixmap::fromImage(depth_img));
 }
 
-void VideoPlayer::set_rgb_data(std::span<uint8_t> data, VideoType typ)
+void VideoPlayer::set_rgb_data(std::span<rgb> data, VideoType typ)
 {
     if (!do_updates) {
         return;

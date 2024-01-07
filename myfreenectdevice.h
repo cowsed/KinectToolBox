@@ -10,7 +10,7 @@
 
 class MyFreenectDevice : public Freenect::FreenectDevice {
 public:
-    using color_callback_t = std::function<void(std::span<uint8_t>)>;
+    using color_callback_t = std::function<void(std::span<rgb>)>;
     using depth_callback_t = std::function<void(std::span<uint16_t>)>;
     MyFreenectDevice(freenect_context* _ctx, int _index);
 
@@ -26,7 +26,7 @@ public:
     void set_ir();
     void set_rgb();
 
-    std::span<uint8_t> color_data();
+    std::span<rgb> color_data();
     std::span<uint16_t> depth_data();
 
     VideoCapture take_capture();
@@ -43,7 +43,7 @@ private:
 
     // rgb picture
     std::mutex m_rgb_mutex;
-    std::vector<uint8_t> m_buffer_video;
+    std::vector<rgb> m_buffer_video;
     bool m_new_rgb_frame = false;
     uint32_t rgb_timestamp = 0;
     uint64_t rgb_count = 0;
