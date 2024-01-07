@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.26)
 
 project(KinectToolBox VERSION 0.1 LANGUAGES C CXX)
 
@@ -24,7 +24,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 
 message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
-
 
 set(PROJECT_SOURCES
         main.cpp
@@ -77,7 +76,6 @@ else()
 endif()
 
 
-message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
 
 target_include_directories(KinectToolBox PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(KinectToolBox PRIVATE "/usr/include/libfreenect")
@@ -92,11 +90,10 @@ target_link_libraries(KinectToolBox PRIVATE Qt::OpenGLWidgets)
 target_link_libraries(KinectToolBox PRIVATE OpenGL::GL OpenGL::GLU )
 target_link_libraries(KinectToolBox PRIVATE freenect)
 
-message(QT_MAJOR_VERSION="${QT_MAJOR_VERSION}")
 
 add_definitions(${PCL_DEFINITIONS})
-message(PCLDEFINITIONS="${PCL_DEFINITIONS}")
-message(PCLLIBS="${PCL_LIBRARIES}")
+
+
 
 if (${ADDRESS_SANITIZE})
     target_link_options(KinectToolBox  PUBLIC -fsanitize=address)

@@ -212,6 +212,7 @@ void MainWindow::try_connect_kinect(){
     double deg = freenect_device->getState().getTiltDegs();
     ui->angleSlider->setSliderPosition((int)deg);
     set_angle((int)deg);
+
     led_green();
 
     data_check_thread = std::thread{MainWindow::data_check_thread_runner, this};

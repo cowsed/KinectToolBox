@@ -114,9 +114,6 @@ VideoCapture MyFreenectDevice::take_capture()
                  buf.begin(),
                  [](rgb col, uint16_t depth) { return DepthPoint{.col = col, .depth = depth}; });
 
-  // std::copy(m_buffer_depth.begin(), m_buffer_depth.end(), depth.begin());
-  // std::copy(m_buffer_video.begin(), m_buffer_video.end(), rgb_buf.begin());
-
   return {.pix = buf};
 }
 vec3 MyFreenectDevice::pixel_to_point(size_t image_x, size_t image_y, float depth)

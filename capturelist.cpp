@@ -1,12 +1,12 @@
 #include "capturelist.h"
-#include "ui_capturelist.h"
 #include <QPainter>
+#include "ui_capturelist.h"
 #include <iostream>
+#include <utility>
 
 CaptureList::CaptureList(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::CaptureList)
-    , recording(false)
 {
     ui->setupUi(this);
 }
@@ -20,21 +20,19 @@ void CaptureList::save_all(const QString &path)
     }
 }
 
-void CaptureList::add_capture(VideoCapture vc, PointFilter::Filter filt)
+void CaptureList::add_capture(VideoCapture cap, const PointFilter::Filter &filt)
 {
-    auto time = QDateTime::currentDateTime();
-    int id = next_id();
+    QDateTime time = QDateTime::currentDateTime();
+    int cap_id = next_id();
 
-    CapturePreview *prev = new CapturePreview(id, vc, filt, time, nullptr);
+    auto *prev = new CapturePreview(cap_id, std::move(cap), filt, time, nullptr);
 
     captures.push_back(prev);
-    auto listItem = new QListWidgetItem();
+    auto *listItem = new QListWidgetItem();
     listItem->setSizeHint(prev->sizeHint());
     ui->captureListWidget->addItem(listItem);
-    QString tt = "Capture: ";
-    tt += time.toString();
 
-    listItem->setToolTip(tt);
+    listItem->setToolTip("Capture: " + time.toString());
     ui->captureListWidget->setItemWidget(listItem, prev);
 
     ui->numCaptureLabel->setText(
@@ -75,36 +73,35 @@ int CaptureList::next_id()
 PointSupplier CaptureList::points_supplier()
 {
     return [this]() {
-        std::vector<PointCloud::Ptr> pts;
+        std::vector<PointCloud::Ptr> clouds;
         for (CapturePreview* cap : captures) {
             if (cap->is_shown()) {
-                auto ps = cap->points();
-                pts.push_back(ps);
+                auto cloud = cap->points();
+                clouds.push_back(cloud);
             }
         }
-        return pts;
+        return clouds;
     };
 }
 
 void CaptureList::toggle_show_hide()
 {
-    auto list = ui->captureListWidget;
+    auto *list = ui->captureListWidget;
     QList<QListWidgetItem*> selected = list->selectedItems();
-    if (selected.size() == 0) {
+    if (selected.empty()) {
         return;
     }
 
     bool first_is_visible = false;
-    if (CapturePreview* cap = dynamic_cast<CapturePreview*>(list->itemWidget(list->currentItem()))) {
+    if (auto *cap = dynamic_cast<CapturePreview *>(list->itemWidget(list->currentItem()))) {
         first_is_visible = cap->is_shown();
     } else {
         std::cout << "non capture preview widget in capture list " << std::endl;
         return;
     }
     bool set_to = !first_is_visible;
-    for (int i = 0; i < selected.size(); i++) {
-        if (CapturePreview* cap = dynamic_cast<CapturePreview*>(list->itemWidget(selected[i]))) {
-            // first_is_visible = cap->is_shown();
+    for (auto *item : selected) {
+        if (auto *cap = dynamic_cast<CapturePreview *>(list->itemWidget(item))) {
             cap->set_shown(set_to);
         } else {
             std::cout << "non capture preview widget in capture list " << std::endl;
@@ -120,5 +117,9 @@ void CaptureList::show_hide_one()
 
 CaptureList::~CaptureList()
 {
+    for (auto *cap : captures) {
+        delete cap;
+    }
+
     delete ui;
 }

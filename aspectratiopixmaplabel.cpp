@@ -8,9 +8,9 @@ AspectRatioPixmapLabel::AspectRatioPixmapLabel(QWidget* parent)
     setScaledContents(false);
 }
 
-void AspectRatioPixmapLabel::setPixmap(const QPixmap& p)
+void AspectRatioPixmapLabel::setPixmap(const QPixmap &pixmap)
 {
-    pix = p;
+    pix = pixmap;
     QLabel::setPixmap(scaledPixmap());
 }
 
@@ -30,7 +30,7 @@ QPixmap AspectRatioPixmapLabel::scaledPixmap() const
     return pix.scaled(this->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
-void AspectRatioPixmapLabel::resizeEvent(QResizeEvent* e)
+void AspectRatioPixmapLabel::resizeEvent(QResizeEvent *event)
 {
     if (!pix.isNull())
         QLabel::setPixmap(scaledPixmap());
