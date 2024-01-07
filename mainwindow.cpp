@@ -48,17 +48,17 @@ MainWindow::MainWindow(QApplication &qap, QWidget *parent)
     set_connection_status_ui(KinectConnectionStatus::Unknown);
 
     // Add dock control menu
-    auto menu = createPopupMenu();
-    if (menu == nullptr) {
+    auto *menu_of_docks = createPopupMenu();
+    if (menu_of_docks == nullptr) {
         std::cout << "BAD" << std::endl;
+    } else {
+        menu_of_docks->setTitle("Window");
+        ui->menubar->addMenu(menu_of_docks);
     }
-    menu->setTitle("Window");
-    ui->menubar->addMenu(menu);
-
     try_connect_kinect();
 }
 
-void MainWindow::save_to(std::string path) {}
+void MainWindow::save_to(const std::string &path) {}
 void MainWindow::save()
 {
     if (project_path.has_value()) {
@@ -129,42 +129,48 @@ void MainWindow::enable_connect()
     ui->actionReconnect->setDisabled(true);
 }
 
-static auto get_color(int i, std::span<uint8_t> rgb) -> std::tuple<uint8_t, uint8_t, uint8_t>
+static auto get_color(size_t pixel_index, std::span<uint8_t> rgb)
+    -> std::tuple<uint8_t, uint8_t, uint8_t>
 {
-    auto r = rgb[3 * i];
-    auto g = rgb[3 * i + 1];
-    auto b = rgb[3 * i + 2];
-    return {r, g, b};
+    return {
+        rgb[3 * pixel_index],
+        rgb[3 * pixel_index + 1],
+        rgb[3 * pixel_index + 2],
+    };
 }
-static auto get_ir(int i, std::span<uint8_t> rgb) -> std::tuple<uint8_t, uint8_t, uint8_t>
+static auto get_ir(size_t pixel_index, std::span<uint8_t> rgb)
+    -> std::tuple<uint8_t, uint8_t, uint8_t>
 {
-    auto r = rgb[i];
-    auto g = rgb[i];
-    auto b = rgb[i];
-    return {r, g, b};
+    return {
+        rgb[pixel_index],
+        rgb[pixel_index],
+        rgb[pixel_index],
+    };
 }
 
-PointCloud::Ptr update_points(PointCloud::Ptr old_pts,
+PointCloud::Ptr update_points(const PointCloud::Ptr &old_pts,
                               std::span<uint8_t> rgb_data,
                               std::span<uint16_t> depth_data,
                               VideoType video_mode,
-                              PointFilter::Filter filt)
+                              const PointFilter::Filter &filt)
 {
     PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
-    newcloud->reserve(640 * 480);
+    newcloud->reserve(num_pixels);
 
     // take our copy of data
     for (size_t i = 0; i < depth_data.size(); i++) {
-      int ix = i % 640;
-      int iy = i / 640;
+      size_t image_x = i % kinect_video_width;
+      size_t image_y = i / kinect_video_width;
+
       uint16_t depth = depth_data[i];
 
       auto [r, g, b] = video_mode == VideoType::RGB ? get_color(i, rgb_data) : get_ir(i, rgb_data);
+      auto [x, y, z] = MyFreenectDevice::pixel_to_point(image_x, image_y, depth);
 
-      auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
-      Point p(x, y, z, r, g, b);
-      if (filt(p)) {
-          newcloud->push_back(p);
+      Point point(x, y, z, r, g, b);
+
+      if (depth != 0 && filt(point)) {
+          newcloud->push_back(point);
       }
     }
     return newcloud;
@@ -179,12 +185,11 @@ void MainWindow::try_connect_kinect(){
     freenect_device = &freenect_ctx.createDevice<MyFreenectDevice>(0);
 
     freenect_device->install_color_callback([this](std::span<uint8_t> new_data) {
-        auto filt = this->ui->ParentFilterSlot->get_filter();
         live_points = update_points(live_points,
                                     new_data,
                                     freenect_device->depth_data(),
                                     freenect_device->video_mode(),
-                                    filt);
+                                    ui->ParentFilterSlot->get_filter());
 
         // alert others
         emit new_rgb_data(new_data, freenect_device->video_mode());
@@ -192,13 +197,11 @@ void MainWindow::try_connect_kinect(){
     });
 
     freenect_device->install_depth_callback([this](std::span<uint16_t> new_data) {
-        auto filt = this->ui->ParentFilterSlot->get_filter();
-
         live_points = update_points(live_points,
                                     freenect_device->color_data(),
                                     new_data,
                                     freenect_device->video_mode(),
-                                    filt);
+                                    ui->ParentFilterSlot->get_filter());
 
         // alert others
         emit new_depth_data(new_data);
@@ -226,7 +229,6 @@ void MainWindow::try_connect_kinect(){
 void MainWindow::disconnect_kinect()
 {
   if (freenect_device == nullptr) {
-    // Wasnt connected anyways
     return;
   }
   thread_should_stop = true;
@@ -261,27 +263,34 @@ std::string string_motion_code(freenect_tilt_status_code code){
 }
 
 void MainWindow::data_check_thread_runner(MainWindow *win_ptr){
+  constexpr size_t thread_sleep_time_ms = 100;
   MainWindow &win = *win_ptr;
   while (!win.thread_should_stop) {
     win.freenect_device->updateState();
     auto state = win.freenect_device->getState();
+
     {
-      std::scoped_lock l{win.data_mtx};
-      win.tilt_state = state;
+        std::scoped_lock lock{win.data_mtx};
+        win.tilt_state = state;
     }
 
     double deg = state.getTiltDegs();
-    auto txt = std::format("Current: {}", deg);
-    if (deg == -64){
-      txt = "Current:" + string_motion_code(state.m_code);
-    }
-    win.ui->curAngleLabel->setText(QString::fromStdString(txt));
-    double x, y, z;
-    state.getAccelerometers(&x, &y, &z);
-    auto txt2 = std::format("Imu: {:.1f} {:.1f} {:.1f}", x,y,z);
-    win.ui->accLabel->setText(QString::fromStdString(txt2));
+    auto degree_text = std::format("Current: {}", deg);
+    constexpr double bad_deg_reading = -64;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if (deg == bad_deg_reading) {
+        degree_text = "Current:" + string_motion_code(state.m_code);
+    }
+    double imux;
+    double imuy;
+    double imuz;
+    state.getAccelerometers(&imux, &imuy, &imuz);
+    auto imu_txt = std::format("Imu: {:.1f} {:.1f} {:.1f}", imux, imuy, imuz);
+
+    win.ui->curAngleLabel->setText(QString::fromStdString(degree_text));
+    win.ui->accLabel->setText(QString::fromStdString(imu_txt));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(thread_sleep_time_ms));
   }
 }
 

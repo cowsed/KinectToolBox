@@ -6,26 +6,26 @@ Filter AlwaysTrue()
     return [](Point) { return true; };
 }
 
-Filter And(Filter a, Filter b)
+Filter And(const Filter &filta, const Filter &filtb)
 {
-    return [a, b](Point p) { return a(p) && b(p); };
+    return [filta, filtb](Point point) { return filta(point) && filtb(point); };
 }
 
-Filter Or(Filter a, Filter b)
+Filter Or(const Filter &filta, const Filter &filtb)
 {
-    return [a, b](Point p) { return a(p) || b(p); };
+    return [filta, filtb](Point point) { return filta(point) || filtb(point); };
 }
 
-Filter Not(Filter a)
+Filter Not(const Filter &filta)
 {
-    return [a](Point p) { return !a(p); };
+    return [filta](Point point) { return !filta(point); };
 }
 
-Filter ComponentLessThan(Component c, float val)
+Filter ComponentLessThan(Component comp, float val)
 {
-    if (c == Component::X) {
+    if (comp == Component::X) {
         return [=](Point p) { return p.x < val; };
-    } else if (c == Component::Y) {
+    } else if (comp == Component::Y) {
         return [=](Point p) { return p.y < val; };
     }
     return [=](Point p) { return p.z < val; };

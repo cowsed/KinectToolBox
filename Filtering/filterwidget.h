@@ -15,7 +15,7 @@ public:
     explicit FilterWidget(QWidget *parent = nullptr);
     ~FilterWidget();
 
-    virtual PointFilter::Filter get_filter() const = 0;
+    [[nodiscard]] virtual PointFilter::Filter get_filter() const = 0;
 
 private:
     Ui::FilterWidget *ui;

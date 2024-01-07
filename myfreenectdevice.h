@@ -14,23 +14,14 @@ public:
     using depth_callback_t = std::function<void(std::span<uint16_t>)>;
     MyFreenectDevice(freenect_context* _ctx, int _index);
 
-    void install_depth_callback(depth_callback_t cb);
-    void install_color_callback(color_callback_t cb);
-    // numbers of rgb samples we've received
-    uint64_t rgb_samples();
-    // numbers of depth samples we've received
-    uint64_t depth_samples();
+    void install_depth_callback(depth_callback_t callback);
+    void install_color_callback(color_callback_t callback);
 
-    static vec3 pixel_to_point(int x, int y, float depth)
-    {
-        float f = 595.f;
-        // Convert from image plane coordinates to world coordinates
-        return {
-            .x = -(x - (640 - 1) / 2.f) * depth / f, // X = (x - cx) * d / fx
-            .y = -(y - (480 - 1) / 2.f) * depth / f, // Y = (y - cy) * d / fy
-            .z = depth                               // Z = d
-        };
-    }
+    // numbers of rgb samples we've received
+    [[nodiscard]] uint64_t rgb_samples() const;
+    // numbers of depth samples we've received
+    [[nodiscard]] uint64_t depth_samples() const;
+
     VideoType video_mode();
     void set_ir();
     void set_rgb();
@@ -40,11 +31,13 @@ public:
 
     VideoCapture take_capture();
 
+    static vec3 pixel_to_point(size_t image_x, size_t image_y, float depth);
+
 private:
     // Do not call directly, even in child
     // Callback for libfreenect
-    void VideoCallback(void* _rgb, uint32_t timestamp);
-    void DepthCallback(void* _depth, uint32_t timestamp);
+    void VideoCallback(void *_rgb, uint32_t timestamp) override;
+    void DepthCallback(void *_depth, uint32_t timestamp) override;
 
     VideoType current_video_type;
 

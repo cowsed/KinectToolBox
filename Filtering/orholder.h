@@ -14,7 +14,7 @@ class OrHolder : public FilterWidget
 public:
     explicit OrHolder(QWidget *parent = nullptr);
     ~OrHolder();
-    PointFilter::Filter get_filter() const override;
+    [[nodiscard]] PointFilter::Filter get_filter() const override;
 
 private:
     Ui::OrHolder *ui;

@@ -9,11 +9,11 @@ using Filter = std::function<bool(Point)>;
 
 Filter AlwaysTrue();
 
-Filter And(Filter a, Filter b);
+Filter And(const Filter &filta, const Filter &filtb);
 
-Filter Or(Filter a, Filter b);
+Filter Or(const Filter &filta, const Filter &filtb);
 
-Filter Not(Filter a);
+Filter Not(const Filter &filta);
 enum class Component { X, Y, Z };
 
 Filter ComponentLessThan(Component c, float val);

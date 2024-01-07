@@ -13,6 +13,13 @@
 #include <span>
 #include <vector>
 
+constexpr size_t kinect_video_width = 640;
+constexpr size_t kinect_video_height = 480;
+constexpr size_t num_pixels = kinect_video_width * kinect_video_height;
+constexpr size_t depth_buffer_size = num_pixels;
+constexpr size_t rgb_buffer_size = 3 * num_pixels;
+constexpr size_t rgba_buffer_size = 4 * num_pixels;
+
 enum class KinectConnectionStatus {
     Connected,
     Disconnected,
