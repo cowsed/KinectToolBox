@@ -14,17 +14,9 @@ CapturePreview::CapturePreview(QWidget* parent)
     connect(ui->checkBox, &QCheckBox::clicked, this, &CapturePreview::checkbox_changed);
 }
 
-static auto get_color(int i, std::span<uint8_t> rgb) -> std::tuple<uint8_t, uint8_t, uint8_t>
-{
-        auto r = rgb[3 * i];
-        auto g = rgb[3 * i + 1];
-        auto b = rgb[3 * i + 2];
-        return {r, g, b};
-}
-
 CapturePreview::CapturePreview(int id,
                                VideoCapture video_capture,
-                               PointFilter::Filter filt,
+                               const PointFilter::Filter &filt,
                                QDateTime time,
                                QWidget *parent)
     : CapturePreview(parent)
@@ -32,19 +24,20 @@ CapturePreview::CapturePreview(int id,
     this->id = id;
     this->time = time;
 
-    thumbnail.resize(4 * 640 * 480);
+    thumbnail.resize(rgba_buffer_size);
 
     PointCloud::Ptr newcloud = std::make_shared<PointCloud>();
-    newcloud->reserve(640 * 480);
+    newcloud->reserve(num_pixels);
 
     // Build thumbnail
-    for (size_t i = 0; i < video_capture.depth.size(); i++) {
-        int ix = i % 640;
-        int iy = i / 640;
-        uint16_t depth = video_capture.depth[i];
-        auto [r, g, b] = video_capture.rgb[i];
+    for (size_t i = 0; i < video_capture.pix.size(); i++) {
+        int image_x = i % kinect_video_width;
+        int image_y = i / kinect_video_width;
 
-        auto [x, y, z] = MyFreenectDevice::pixel_to_point(ix, iy, depth);
+        uint16_t depth = video_capture.pix[i].depth;
+        auto [r, g, b] = video_capture.pix[i].col;
+
+        auto [x, y, z] = MyFreenectDevice::pixel_to_point(image_x, image_y, depth);
 
         Point p(x, y, z, r, g, b);
         thumbnail[4 * i] = r;
@@ -61,7 +54,10 @@ CapturePreview::CapturePreview(int id,
     pts = newcloud;
 
     this->ui->idLabel->setText(QString::fromStdString(std::format("{}", id)));
-    QImage img((uchar *) thumbnail.data(), 640, 480, QImage::Format::Format_RGBA8888);
+    QImage img((uchar *) thumbnail.data(),
+               kinect_video_width,
+               kinect_video_height,
+               QImage::Format::Format_RGBA8888);
 
     this->ui->imagePreview->setPixmap(QPixmap::fromImage(img));
 }
@@ -82,13 +78,13 @@ int CapturePreview::get_id() const
     return id;
 }
 
-void CapturePreview::set_shown(bool s)
+void CapturePreview::set_shown(bool shown)
 {
-    Qt::CheckState cs = Qt::Unchecked;
-    if (s) {
-        cs = Qt::Checked;
+    Qt::CheckState checked = Qt::Unchecked;
+    if (shown) {
+        checked = Qt::Checked;
     }
-    this->ui->checkBox->setCheckState(cs);
+    this->ui->checkBox->setCheckState(checked);
 }
 
 PointCloud::Ptr CapturePreview::points()
@@ -110,16 +106,3 @@ CapturePreview::~CapturePreview()
 {
     delete ui;
 }
-
-// QDataStream &operator<<(QDataStream &out, const CapturePreview &item)
-// {
-//     QDataStream::FloatingPointPrecision prev = out.floatingPointPrecision();
-//     out.setFloatingPointPrecision(QDataStream::DoublePrecision);
-//     QList<Point> pts(item.pts.size());
-//     std::copy(item.pts.begin(), item.pts.end(), pts.begin());
-
-//     out << item.get_id() << item.get_time() << item.is_shown() << pts;
-
-//     out.setFloatingPointPrecision(prev);
-//     return out;
-// }

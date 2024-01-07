@@ -7,7 +7,6 @@
 #include "pcl/point_cloud.h"
 #include <cstdint>
 #include <functional>
-#include <future>
 #include <iostream>
 #include <optional>
 #include <span>
@@ -40,7 +39,7 @@ struct rgb
 
 struct DepthPoint
 {
-    uint8_t r, g, b;
+    rgb col;
     uint16_t depth;
 };
 
@@ -58,8 +57,7 @@ enum class VideoType {
 
 struct VideoCapture
 {
-    std::vector<rgb> rgb;
-    std::vector<uint16_t> depth;
+    std::vector<DepthPoint> pix;
 };
 
 // QDataStream& operator<<(QDataStream& out, const VideoCapture& vc);

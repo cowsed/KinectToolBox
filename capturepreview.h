@@ -19,7 +19,7 @@ public:
     explicit CapturePreview(QWidget* parent = nullptr);
     CapturePreview(int id,
                    VideoCapture cap,
-                   PointFilter::Filter pc,
+                   const PointFilter::Filter &pc,
                    QDateTime time,
                    QWidget *parent = nullptr);
     ~CapturePreview();
@@ -32,7 +32,7 @@ public:
     void points_to_file(const std::string &fname);
 
 public slots:
-    void set_shown(bool s);
+    void set_shown(bool shown);
     void checkbox_changed();
 signals:
     void visibility_changed();
@@ -45,6 +45,5 @@ private:
     int id;
 };
 
-// QDataStream &operator<<(QDataStream &out, const CapturePreview &item);
 
 #endif // CAPTUREPREVIEW_H

@@ -81,17 +81,18 @@ void PointCloudRenderer::paintGL()
   glEnd();
 
   // Draw the world coordinate frame
+  const float len = 50;
   glLineWidth(2.0f);
   glBegin(GL_LINES);
   glColor3ub(255, 0, 0); // X-axis
   glVertex3f(0, 0, 0);
-  glVertex3f(50, 0, 0);
+  glVertex3f(len, 0, 0);
   glColor3ub(0, 255, 0); // Y-axis
   glVertex3f(0, 0, 0);
-  glVertex3f(0, 50, 0);
+  glVertex3f(0, len, 0);
   glColor3ub(0, 0, 255); // Z-axis
   glVertex3f(0, 0, 0);
-  glVertex3f(0, 0, 50);
+  glVertex3f(0, 0, len);
   glEnd();
 
   // Place the camera
@@ -100,10 +101,10 @@ void PointCloudRenderer::paintGL()
   glScalef(zoom, zoom, 1);
   const float scaler = 7;
   const vec3 center = {0.0, 0.0, 2000.0};
-  const vec3 up = {0.0, 1.0, 0.0};
+  const vec3 up_vec = {0.0, 1.0, 0.0};
   const vec3 eye = {-scaler * anglex, -scaler * angley, -1000.0};
 
-  gluLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z);
+  gluLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up_vec.x, up_vec.y, up_vec.z);
   this->update();
 }
 
@@ -140,7 +141,7 @@ void PointCloudRenderer::wheelEvent(QWheelEvent* event)
 {
   constexpr float zoom_scaler = 1.0 / 800.0;
   constexpr float min_zoom = 0.05;
-  const float amt = event->pixelDelta().y();
+  const float amt = (float) event->pixelDelta().y();
   zoom += amt * zoom_scaler;
   if (zoom <= 0) {
       zoom = min_zoom;
@@ -164,8 +165,8 @@ void PointCloudRenderer::mouseMoveEvent(QMouseEvent* event)
   int delta_y = rel_y - last_ry;
   if (event->buttons().testFlag(Qt::MouseButton::LeftButton)) {
     const float scaler = 0.5F;
-    anglex -= (delta_x * scaler);
-    angley -= (delta_y * scaler);
+    anglex -= ((float) delta_x * scaler);
+    angley -= ((float) delta_y * scaler);
   }
   last_rx = rel_x;
   last_ry = rel_y;

@@ -3,9 +3,8 @@
 
 MyFreenectDevice::MyFreenectDevice(freenect_context *_ctx, int _index)
     : Freenect::FreenectDevice(_ctx, _index)
-    , m_buffer_video(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes)
-    , m_buffer_depth(
-          freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_REGISTERED).bytes / 2)
+    , m_buffer_video(num_pixels)
+    , m_buffer_depth(num_pixels)
     , current_video_type(VideoType::RGB)
 {
     setDepthFormat(FREENECT_DEPTH_REGISTERED);
@@ -104,15 +103,22 @@ void MyFreenectDevice::set_rgb()
 
 VideoCapture MyFreenectDevice::take_capture()
 {
-  std::vector<rgb> rgb_buf(rgb_buffer_size);
-  std::vector<uint16_t> depth(depth_buffer_size);
+  std::scoped_lock lock(m_depth_mutex);
+  std::scoped_lock lock2(m_rgb_mutex);
 
-  std::copy(m_buffer_depth.begin(), m_buffer_depth.end(), depth.begin());
-  std::copy(m_buffer_video.begin(), m_buffer_video.end(), rgb_buf.begin());
+  std::vector<DepthPoint> buf(num_pixels);
 
-  return {.rgb = rgb_buf, .depth = depth};
+  std::transform(m_buffer_video.cbegin(),
+                 m_buffer_video.cend(),
+                 m_buffer_depth.cbegin(),
+                 buf.begin(),
+                 [](rgb col, uint16_t depth) { return DepthPoint{.col = col, .depth = depth}; });
+
+  // std::copy(m_buffer_depth.begin(), m_buffer_depth.end(), depth.begin());
+  // std::copy(m_buffer_video.begin(), m_buffer_video.end(), rgb_buf.begin());
+
+  return {.pix = buf};
 }
-
 vec3 MyFreenectDevice::pixel_to_point(size_t image_x, size_t image_y, float depth)
 {
   constexpr float focal_point = 595.0; //  or rather lens parameter

@@ -52,9 +52,11 @@ void VideoPlayer::set_rgb_data(std::span<rgb> data)
     if (!do_updates) {
         return;
     }
-    QImage::Format fmt = QImage::Format_RGB888;
 
-    rgb_img = QImage((uchar *) data.data(), frame_size.width(), frame_size.height(), fmt);
+    rgb_img = QImage((uchar *) data.data(),
+                     frame_size.width(),
+                     frame_size.height(),
+                     QImage::Format_RGB888);
     ui->rgbLabel->setPixmap(QPixmap::fromImage(rgb_img));
 }
 void VideoPlayer::set_depth_data(std::span<uint16_t> data)
