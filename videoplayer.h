@@ -17,7 +17,7 @@ public:
     explicit VideoPlayer(QWidget* parent = nullptr);
     ~VideoPlayer() override;
 public slots:
-    void set_rgb_data(std::span<rgb> data, VideoType typ);
+    void set_rgb_data(std::span<rgb> data);
     void set_depth_data(std::span<uint16_t> data);
 
     void start();
